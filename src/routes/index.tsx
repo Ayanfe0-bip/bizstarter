@@ -1795,11 +1795,11 @@ function ReportsPage({
   });
 
   const sales = filteredTransactions
-    .filter((transaction) => transaction.type === "sale")
+    .filter((transaction) => transaction.kind === "sale")
     .reduce((total, transaction) => total + transaction.amount, 0);
 
   const expenses = filteredTransactions
-    .filter((transaction) => transaction.type === "expense")
+    .filter((transaction) => transaction.kind === "expense")
     .reduce((total, transaction) => total + transaction.amount, 0);
 
   const profit = sales - expenses;
@@ -1945,12 +1945,12 @@ function ReportsPage({
                       <td>
                         <span
                           className={`status-badge ${
-                            transaction.type === "sale"
+                            transaction.kind === "sale"
                               ? "status-paid"
                               : "status-pending"
                           }`}
                         >
-                          {transaction.type === "sale" ? "Sale" : "Expense"}
+                          {transaction.kind === "sale" ? "Sale" : "Expense"}
                         </span>
                       </td>
                       <td>{formatMoney(transaction.amount)}</td>
