@@ -1,0 +1,388 @@
+import { createFileRoute } from "@tanstack/react-router";
+import {
+  ArrowDownLeft,
+  ArrowRight,
+  ArrowUpRight,
+  BarChart3,
+  Bell,
+  ChevronDown,
+  CircleDollarSign,
+  ClipboardList,
+  CreditCard,
+  Download,
+  FileText,
+  HandCoins,
+  LayoutDashboard,
+  Menu,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Settings2,
+  ShoppingBag,
+  Sparkles,
+  TrendingUp,
+  Wallet,
+  X,
+} from "lucide-react";
+import { useMemo, useState, type FormEvent, type ReactNode } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  chartData,
+  expenseCategories,
+  initialDebts,
+  initialTransactions,
+  type CustomerDebt,
+  type Transaction,
+  type TransactionKind,
+  type WorkspacePage,
+} from "@/features/bizstarter/data";
+
+export const Route = createFileRoute("/")({
+  head: () => ({
+    meta: [
+      { title: "BizStarter — Small business, in good hands" },
+      {
+        name: "description",
+        content:
+          "A simple business workspace to record sales, keep track of expenses, and understand your day-to-day performance.",
+      },
+      { property: "og:title", content: "BizStarter — Small business, in good hands" },
+      {
+        property: "og:description",
+        content:
+          "A simple business workspace to record sales, keep track of expenses, and understand your day-to-day performance.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
+    ],
+  }),
+  component: Index,
+});
+
+const pageLinks: { id: WorkspacePage; label: string; icon: typeof LayoutDashboard }[] = [
+  { id: "dashboard", label: "Overview", icon: LayoutDashboard },
+  { id: "sales", label: "Sales", icon: ShoppingBag },
+  { id: "expenses", label: "Expenses", icon: Wallet },
+  { id: "profit", label: "Profit overview", icon: TrendingUp },
+  { id: "debts", label: "Customer debts", icon: HandCoins },
+  { id: "reports", label: "Reports", icon: BarChart3 },
+  { id: "settings", label: "Settings", icon: Settings2 },
+];
+
+const featureCards = [
+  { title: "Sales tracking", detail: "Keep every order in one clear place.", icon: ShoppingBag, tone: "mint" },
+  { title: "Expense management", detail: "Know what your business spends.", icon: Wallet, tone: "peach" },
+  { title: "Profit overview", detail: "See a thoughtful estimate, at a glance.", icon: TrendingUp, tone: "blue" },
+  { title: "Customer debts", detail: "Keep track of credit and payments.", icon: HandCoins, tone: "lilac" },
+  { title: "Business reports", detail: "Review daily and monthly activity.", icon: ClipboardList, tone: "yellow" },
+];
+
+function formatMoney(value: number) {
+  return new Intl.NumberFormat("en-NG", {
+    style: "currency",
+    currency: "NGN",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function formatDate(date: string) {
+  const value = new Date(`${date}T12:00:00`);
+  return new Intl.DateTimeFormat("en-NG", { day: "numeric", month: "short", year: "numeric" }).format(value);
+}
+
+function Index() {
+  const [page, setPage] = useState<WorkspacePage | "home">("home");
+  const [transactions, setTransactions] = useState(initialTransactions);
+  const [debts, setDebts] = useState(initialDebts);
+  const [dialogKind, setDialogKind] = useState<TransactionKind | "payment" | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("All categories");
+
+  const sales = useMemo(() => transactions.filter((transaction) => transaction.kind === "sale"), [transactions]);
+  const expenses = useMemo(() => transactions.filter((transaction) => transaction.kind === "expense"), [transactions]);
+  const salesTotal = sales.reduce((sum, item) => sum + item.amount, 0);
+  const expensesTotal = expenses.reduce((sum, item) => sum + item.amount, 0);
+  const debtsTotal = debts.reduce((sum, item) => sum + item.amountOwed - item.amountPaid, 0);
+
+  function addTransaction(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (dialogKind !== "sale" && dialogKind !== "expense") return;
+    const formData = new FormData(event.currentTarget);
+    const description = String(formData.get("description") ?? "").trim();
+    const amount = Number(formData.get("amount"));
+    const date = String(formData.get("date") ?? "");
+    const category = dialogKind === "sale" ? "Product sales" : String(formData.get("category") ?? "Other");
+    if (!description || !Number.isFinite(amount) || amount <= 0 || !date) return;
+    setTransactions((current) => [
+      { id: crypto.randomUUID(), kind: dialogKind, description, amount, category, date },
+      ...current,
+    ]);
+    setDialogKind(null);
+  }
+
+  function recordPayment(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const debtId = String(formData.get("debtId") ?? "");
+    const payment = Number(formData.get("payment"));
+    if (!debtId || !Number.isFinite(payment) || payment <= 0) return;
+    setDebts((current) => current.map((debt) => debt.id === debtId
+      ? { ...debt, amountPaid: Math.min(debt.amountOwed, debt.amountPaid + payment) }
+      : debt));
+    setDialogKind(null);
+  }
+
+  const filteredTransactions = transactions.filter((transaction) => {
+    const matchesQuery = `${transaction.description} ${transaction.category}`.toLowerCase().includes(query.toLowerCase());
+    const matchesCategory = categoryFilter === "All categories" || transaction.category === categoryFilter;
+    return matchesQuery && matchesCategory;
+  });
+
+  if (page === "home") {
+    return (
+      <div className="min-h-screen bg-background text-foreground">
+        <header className="landing-header">
+          <a className="brand-lockup" href="#top" aria-label="BizStarter home">
+            <BrandMark />
+            <span>BizStarter</span>
+          </a>
+          <nav className="landing-nav" aria-label="Main navigation">
+            <a href="#features">Features</a>
+            <a href="#preview">Preview</a>
+          </nav>
+          <Button onClick={() => setPage("dashboard")} className="header-cta">Open workspace <ArrowRight /></Button>
+        </header>
+
+        <main id="top">
+          <section className="landing-hero">
+            <div className="hero-copy">
+              <span className="eyebrow"><Sparkles /> A clearer way to run your business</span>
+              <h1>Take control of<br /><span>your business.</span></h1>
+              <p>Keep sales, expenses, and customer balances together in one simple place. Make a little more sense of every business day.</p>
+              <div className="hero-actions">
+                <Button size="lg" onClick={() => setPage("dashboard")}>Get started <ArrowRight /></Button>
+                <Button size="lg" variant="outline" onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}>Explore features</Button>
+              </div>
+              <div className="hero-footnote"><span className="sample-dot" /> Preview uses sample information only</div>
+            </div>
+            <div className="hero-preview-wrap" id="preview">
+              <div className="preview-sparkle sparkle-one">✳</div>
+              <DashboardPreview salesTotal={salesTotal} expensesTotal={expensesTotal} />
+              <div className="preview-note"><span className="note-icon"><CircleDollarSign /></span><span><strong>A little more clarity</strong><small>Business at a glance</small></span><ArrowUpRight /></div>
+            </div>
+          </section>
+
+          <section className="feature-section" id="features">
+            <div className="section-title-row">
+              <div><span className="eyebrow">A calmer business day</span><h2>Everything in its place.</h2></div>
+              <p>Less guesswork, more time for the work that matters.</p>
+            </div>
+            <div className="feature-grid">
+              {featureCards.map((feature) => {
+                const Icon = feature.icon;
+                return <button key={feature.title} className="feature-item" onClick={() => setPage(feature.title === "Sales tracking" ? "sales" : feature.title === "Expense management" ? "expenses" : feature.title === "Profit overview" ? "profit" : feature.title === "Customer debts" ? "debts" : "reports")}>
+                  <span className={`feature-icon ${feature.tone}`}><Icon /></span>
+                  <span className="feature-title">{feature.title}<ArrowRight /></span>
+                  <span className="feature-detail">{feature.detail}</span>
+                </button>;
+              })}
+            </div>
+          </section>
+
+          <section className="closing-band">
+            <div><span className="eyebrow">Your next business day starts here</span><h2>Start small. Manage smart. Grow bigger.</h2></div>
+            <Button variant="secondary" onClick={() => setPage("dashboard")}>Explore the workspace <ArrowRight /></Button>
+          </section>
+        </main>
+        <footer className="landing-footer"><a className="brand-lockup" href="#top"><BrandMark /><span>BizStarter</span></a><span>Created by Ayanfe Innovation Labs Limited.</span><span>Start Small. Manage Smart. Grow Bigger.</span></footer>
+      </div>
+    );
+  }
+
+  return (
+    <div className="workspace-shell">
+      <aside className={`workspace-sidebar ${menuOpen ? "is-open" : ""}`}>
+        <a className="brand-lockup sidebar-brand" href="#top" onClick={(event) => { event.preventDefault(); setPage("home"); }}><BrandMark /><span>BizStarter</span></a>
+        <div className="workspace-label">WORKSPACE</div>
+        <nav className="side-nav" aria-label="Workspace">
+          {pageLinks.map(({ id, label, icon: Icon }) => <button key={id} className={`nav-item ${page === id ? "active" : ""}`} onClick={() => { setPage(id); setMenuOpen(false); }}><Icon />{label}{id === "debts" && <span className="nav-count">2</span>}</button>)}
+        </nav>
+        <div className="sidebar-bottom"><div className="workspace-help"><span className="help-mark">?</span><span><strong>Need a hand?</strong><small>We’re here to help</small></span><ArrowRight /></div><div className="sidebar-credit">Ayanfe Innovation Labs Limited</div></div>
+      </aside>
+
+      {menuOpen && <button className="sidebar-backdrop" aria-label="Close navigation" onClick={() => setMenuOpen(false)} />}
+
+      <div className="workspace-main">
+        <header className="workspace-topbar">
+          <Button variant="ghost" size="icon" className="mobile-menu-button" aria-label="Open navigation" onClick={() => setMenuOpen(true)}><Menu /></Button>
+          <div className="breadcrumbs"><span>Workspace</span><span>/</span><strong>{pageLinks.find((item) => item.id === page)?.label}</strong></div>
+          <div className="topbar-actions"><span className="sample-badge"><span /> Sample data</span><Button variant="ghost" size="icon" aria-label="Notifications"><Bell /></Button><button className="profile-chip" aria-label="Open profile menu"><span className="profile-avatar">B</span><span className="profile-name">My business</span><ChevronDown /></button></div>
+        </header>
+        <main className="workspace-content">
+          {page === "dashboard" && <DashboardPage salesTotal={salesTotal} expensesTotal={expensesTotal} debtsTotal={debtsTotal} transactions={transactions} onAddSale={() => setDialogKind("sale")} onAddExpense={() => setDialogKind("expense")} onNavigate={setPage} />}
+          {page === "sales" && <TransactionsPage kind="sale" transactions={filteredTransactions.filter((item) => item.kind === "sale")} query={query} onQuery={setQuery} categoryFilter={categoryFilter} onCategory={setCategoryFilter} onAdd={() => setDialogKind("sale")} />}
+          {page === "expenses" && <TransactionsPage kind="expense" transactions={filteredTransactions.filter((item) => item.kind === "expense")} query={query} onQuery={setQuery} categoryFilter={categoryFilter} onCategory={setCategoryFilter} onAdd={() => setDialogKind("expense")} />}
+          {page === "profit" && <ProfitPage salesTotal={salesTotal} expensesTotal={expensesTotal} />}
+          {page === "debts" && <DebtsPage debts={debts} onPayment={() => setDialogKind("payment")} />}
+          {page === "reports" && <ReportsPage sales={sales} expenses={expenses} salesTotal={salesTotal} expensesTotal={expensesTotal} />}
+          {page === "settings" && <SettingsPage />}
+        </main>
+        <footer className="workspace-footer"><span>BizStarter <span className="footer-separator">·</span> Sample workspace</span><span>Created by Ayanfe Innovation Labs Limited</span></footer>
+      </div>
+
+      <Dialog open={dialogKind !== null} onOpenChange={(open) => { if (!open) setDialogKind(null); }}>
+        <DialogContent className="entry-dialog">
+          {dialogKind === "sale" || dialogKind === "expense" ? <>
+            <DialogHeader><span className="dialog-icon"><Plus /></span><DialogTitle>{dialogKind === "sale" ? "Record a sale" : "Record an expense"}</DialogTitle><DialogDescription>Your information stays in this sample workspace and resets when refreshed.</DialogDescription></DialogHeader>
+            <form className="entry-form" onSubmit={addTransaction}>
+              <label>Description<input name="description" placeholder={dialogKind === "sale" ? "e.g. Customer order" : "e.g. Market supplies"} required maxLength={80} /></label>
+              <label>Amount (₦)<input name="amount" type="number" min="1" step="1" placeholder="0" required /></label>
+              {dialogKind === "expense" && <label>Category<select name="category" defaultValue="Inventory">{expenseCategories.map((category) => <option key={category}>{category}</option>)}</select></label>}
+              <label>Date<input name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} required /></label>
+              <Button type="submit" className="form-submit">Save {dialogKind === "sale" ? "sale" : "expense"}</Button>
+            </form>
+          </> : dialogKind === "payment" ? <>
+            <DialogHeader><span className="dialog-icon"><HandCoins /></span><DialogTitle>Record a payment</DialogTitle><DialogDescription>Apply a payment to an existing customer balance.</DialogDescription></DialogHeader>
+            <form className="entry-form" onSubmit={recordPayment}>
+              <label>Customer<select name="debtId" required>{debts.filter((debt) => debt.amountOwed > debt.amountPaid).map((debt) => <option key={debt.id} value={debt.id}>{debt.name} · {formatMoney(debt.amountOwed - debt.amountPaid)} remaining</option>)}</select></label>
+              <label>Payment received (₦)<input name="payment" type="number" min="1" step="1" placeholder="0" required /></label>
+              <Button type="submit" className="form-submit">Record payment</Button>
+            </form>
+          </> : null}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function BrandMark() {
+  return <span className="brand-mark" aria-hidden="true"><span /><span /><span /></span>;
+}
+
+function DashboardPreview({ salesTotal, expensesTotal }: { salesTotal: number; expensesTotal: number }) {
+  return <div className="dashboard-preview">
+    <div className="preview-top"><div className="preview-brand"><BrandMark /><span>BizStarter</span></div><span className="preview-window-dots"><i /><i /><i /></span></div>
+    <div className="preview-greeting"><span>MONDAY, 15 JUNE</span><strong>Your business, at a glance</strong></div>
+    <div className="preview-metrics">
+      <PreviewMetric label="Total sales" value={formatMoney(salesTotal)} icon={<ArrowUpRight />} variant="green" />
+      <PreviewMetric label="Expenses" value={formatMoney(expensesTotal)} icon={<ArrowDownLeft />} variant="orange" />
+    </div>
+    <div className="preview-chart-wrap"><div className="preview-chart-heading"><span>Sales overview</span><span>Last 7 days <ChevronDown /></span></div><MiniChart compact /></div>
+    <div className="preview-latest"><span>Recent activity</span><span className="preview-order"><span className="order-dot" /> Custom cake order <strong>+₦185,000</strong></span></div>
+  </div>;
+}
+
+function PreviewMetric({ label, value, icon, variant }: { label: string; value: string; icon: ReactNode; variant: string }) {
+  return <div className="preview-metric"><span className={`metric-icon ${variant}`}>{icon}</span><span>{label}</span><strong>{value}</strong><small>Sample figure</small></div>;
+}
+
+function PageHeading({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: ReactNode }) {
+  return <div className="page-heading"><div><span className="eyebrow">{eyebrow}</span><h1>{title}</h1><p>{description}</p></div>{action}</div>;
+}
+
+function DashboardPage({ salesTotal, expensesTotal, debtsTotal, transactions, onAddSale, onAddExpense, onNavigate }: {
+  salesTotal: number; expensesTotal: number; debtsTotal: number; transactions: Transaction[];
+  onAddSale: () => void; onAddExpense: () => void; onNavigate: (page: WorkspacePage) => void;
+}) {
+  const recent = transactions.slice(0, 5);
+  return <>
+    <PageHeading eyebrow="MONDAY, 15 JUNE 2026" title="Good morning, business owner" description="Here’s what’s happening in your sample workspace." action={<div className="heading-actions"><Button variant="outline" onClick={onAddExpense}><Plus /> Add expense</Button><Button onClick={onAddSale}><Plus /> Add sale</Button></div>} />
+    <div className="sample-notice"><Sparkles /><span><strong>Sample workspace</strong> — figures shown are for demonstration and aren’t your actual business records.</span></div>
+    <section className="metric-grid" aria-label="Business overview">
+      <MetricCard title="Total sales" amount={salesTotal} icon={<ShoppingBag />} detail="Across recorded sample sales" color="green" />
+      <MetricCard title="Total expenses" amount={expensesTotal} icon={<Wallet />} detail="Across recorded sample expenses" color="orange" />
+      <MetricCard title="Estimated profit" amount={salesTotal - expensesTotal} icon={<TrendingUp />} detail="Sales less recorded expenses" color="blue" />
+      <MetricCard title="Customer debts" amount={debtsTotal} icon={<HandCoins />} detail="Outstanding sample balances" color="rose" />
+    </section>
+    <section className="dashboard-grid">
+      <div className="content-panel chart-panel"><div className="panel-heading"><div><h2>Sales overview</h2><p>Sample activity over the last 7 days</p></div><Button variant="outline" size="sm">This week <ChevronDown /></Button></div><MiniChart /></div>
+      <div className="content-panel quick-panel"><div className="panel-heading"><div><h2>Quick actions</h2><p>Keep your records up to date</p></div></div><button className="quick-action" onClick={onAddSale}><span className="quick-icon mint"><ShoppingBag /></span><span><strong>Record a sale</strong><small>Add a completed order</small></span><ArrowRight /></button><button className="quick-action" onClick={onAddExpense}><span className="quick-icon peach"><Wallet /></span><span><strong>Record an expense</strong><small>Log a business cost</small></span><ArrowRight /></button><button className="quick-action" onClick={() => onNavigate("debts")}><span className="quick-icon lilac"><HandCoins /></span><span><strong>Review customer debts</strong><small>Check balances and payments</small></span><ArrowRight /></button></div>
+    </section>
+    <section className="content-panel transaction-panel"><div className="panel-heading"><div><h2>Recent transactions</h2><p>Your latest sample business activity</p></div><Button variant="ghost" size="sm" onClick={() => onNavigate("sales")}>See all <ArrowRight /></Button></div><TransactionTable transactions={recent} /></section>
+  </>;
+}
+
+function MetricCard({ title, amount, icon, detail, color }: { title: string; amount: number; icon: ReactNode; detail: string; color: string }) {
+  return <article className="metric-card"><div className="metric-card-top"><span>{title}</span><span className={`metric-card-icon ${color}`}>{icon}</span></div><strong className="metric-value">{formatMoney(amount)}</strong><span className="metric-detail">{detail}</span></article>;
+}
+
+function MiniChart({ compact = false }: { compact?: boolean }) {
+  return <div className={`mini-chart ${compact ? "compact" : ""}`} aria-label="Sample sales chart, Monday to Sunday">
+    <div className="chart-scale"><span>₦200k</span><span>₦150k</span><span>₦100k</span><span>₦50k</span></div>
+    <div className="chart-plot"><div className="chart-guides"><i /><i /><i /><i /></div><div className="chart-columns">{chartData.map((item, index) => <div className="chart-day" key={item.label}><div className="chart-bar-track"><span className={`chart-bar bar-${index + 1}`} /></div><span className="chart-day-label">{item.label}</span></div>)}</div></div>
+  </div>;
+}
+
+function TransactionTable({ transactions }: { transactions: Transaction[] }) {
+  if (!transactions.length) return <EmptyState icon={<FileText />} title="No transactions yet" detail="New activity will appear here once it’s recorded." />;
+  return <div className="table-scroll"><table className="data-table"><thead><tr><th>Transaction</th><th>Category</th><th>Date</th><th>Amount</th><th>Status</th></tr></thead><tbody>{transactions.map((item) => <tr key={item.id}><td><span className={`transaction-icon ${item.kind}`} >{item.kind === "sale" ? <ArrowDownLeft /> : <ArrowUpRight />}</span><strong>{item.description}</strong></td><td>{item.category}</td><td>{formatDate(item.date)}</td><td className={item.kind === "sale" ? "amount-positive" : "amount-negative"}>{item.kind === "sale" ? "+" : "−"}{formatMoney(item.amount)}</td><td><span className={`status-pill ${item.kind}`}>{item.kind === "sale" ? "Sale" : "Expense"}</span></td></tr>)}</tbody></table></div>;
+}
+
+function TransactionsPage({ kind, transactions, query, onQuery, categoryFilter, onCategory, onAdd }: {
+  kind: TransactionKind; transactions: Transaction[]; query: string; onQuery: (value: string) => void;
+  categoryFilter: string; onCategory: (value: string) => void; onAdd: () => void;
+}) {
+  const isSale = kind === "sale";
+  return <>
+    <PageHeading eyebrow={isSale ? "MONEY COMING IN" : "MONEY GOING OUT"} title={isSale ? "Sales" : "Expenses"} description={isSale ? "A record of your sample customer orders and sales." : "A clear view of your sample business spending."} action={<Button onClick={onAdd}><Plus /> Add {isSale ? "sale" : "expense"}</Button>} />
+    <div className="sample-notice"><Sparkles /><span><strong>Sample workspace</strong> — these entries are examples, not actual business records.</span></div>
+    <div className="content-panel listing-panel"><div className="listing-toolbar"><div className="search-control"><Search /><input aria-label="Search transactions" placeholder={`Search ${isSale ? "sales" : "expenses"}`} value={query} onChange={(event) => onQuery(event.target.value)} /></div><label className="category-filter"><span className="sr-only">Filter by category</span><select value={categoryFilter} onChange={(event) => onCategory(event.target.value)}><option>All categories</option>{(isSale ? ["Product sales"] : expenseCategories).map((category) => <option key={category}>{category}</option>)}</select><ChevronDown /></label><Button variant="outline" size="sm"><Download /> Export</Button></div>
+      {transactions.length ? <TransactionTable transactions={transactions} /> : <EmptyState icon={isSale ? <ShoppingBag /> : <Wallet />} title={query || categoryFilter !== "All categories" ? "No matching records" : `No ${isSale ? "sales" : "expenses"} yet`} detail={query || categoryFilter !== "All categories" ? "Try a different search or category." : `Add your first ${isSale ? "sale" : "expense"} to see it listed here.`} />}
+    </div>
+  </>;
+}
+
+function ProfitPage({ salesTotal, expensesTotal }: { salesTotal: number; expensesTotal: number }) {
+  const profit = salesTotal - expensesTotal;
+  return <>
+    <PageHeading eyebrow="A SIMPLE SNAPSHOT" title="Profit overview" description="Understand the difference between recorded sales and operating expenses." />
+    <div className="sample-notice"><Sparkles /><span><strong>Estimated only</strong> — this is not a full accounting of business profit.</span></div>
+    <div className="profit-layout"><div className="content-panel profit-summary"><span className="profit-summary-label">Estimated profit</span><strong>{formatMoney(profit)}</strong><span className="estimate-tag"><TrendingUp /> Sales less recorded expenses</span><div className="profit-divider" /><div className="profit-line"><span><i className="legend-dot sales-dot" /> Total sales</span><strong>{formatMoney(salesTotal)}</strong></div><div className="profit-line"><span><i className="legend-dot expenses-dot" /> Total recorded expenses</span><strong>− {formatMoney(expensesTotal)}</strong></div></div>
+      <aside className="profit-note"><span className="note-bulb">i</span><div><h2>A useful estimate, not the whole picture.</h2><p>This figure subtracts recorded operating expenses from sales. A true business profit calculation may also need cost of goods sold, inventory changes, taxes, loan repayments, and other costs.</p><p>Use it as a simple overview—not as a replacement for accounting advice or formal financial statements.</p></div></aside></div>
+    <div className="content-panel profit-breakdown"><div className="panel-heading"><div><h2>How the estimate adds up</h2><p>Based on entries in this sample workspace</p></div></div><div className="breakdown-row"><span>Sales recorded</span><strong>{formatMoney(salesTotal)}</strong></div><div className="breakdown-row"><span>Expenses recorded</span><strong>− {formatMoney(expensesTotal)}</strong></div><div className="breakdown-row total"><span>Estimated profit</span><strong>{formatMoney(profit)}</strong></div></div>
+  </>;
+}
+
+function DebtsPage({ debts, onPayment }: { debts: CustomerDebt[]; onPayment: () => void }) {
+  const total = debts.reduce((sum, debt) => sum + debt.amountOwed - debt.amountPaid, 0);
+  return <>
+    <PageHeading eyebrow="CUSTOMER CREDIT" title="Customer debts" description="Keep credit sales and customer payments easy to follow." action={<Button onClick={onPayment}><Plus /> Record a payment</Button>} />
+    <div className="sample-notice"><Sparkles /><span><strong>Sample workspace</strong> — example customer names and balances are for demonstration only.</span></div>
+    <div className="debt-summary"><span className="debt-summary-icon"><HandCoins /></span><div><span>Outstanding sample balance</span><strong>{formatMoney(total)}</strong></div><span className="debt-summary-count">{debts.filter((debt) => debt.amountOwed > debt.amountPaid).length} open balances</span></div>
+    <div className="content-panel debt-list-panel"><div className="panel-heading"><div><h2>Customer balances</h2><p>Credit sales are tracked separately from business expenses.</p></div></div>
+      <div className="table-scroll"><table className="data-table debt-table"><thead><tr><th>Customer</th><th>Original amount</th><th>Amount paid</th><th>Outstanding</th><th>Due date</th><th /></tr></thead><tbody>{debts.map((debt) => { const balance = debt.amountOwed - debt.amountPaid; return <tr key={debt.id}><td><span className="customer-avatar">{debt.name.slice(-1)}</span><strong>{debt.name}</strong></td><td>{formatMoney(debt.amountOwed)}</td><td>{formatMoney(debt.amountPaid)}</td><td className="debt-balance">{formatMoney(balance)}</td><td>{formatDate(debt.dueDate)}</td><td><button className="icon-button" aria-label={`More actions for ${debt.name}`}><MoreHorizontal /></button></td></tr>; })}</tbody></table></div>
+    </div>
+  </>;
+}
+
+function ReportsPage({ sales, expenses, salesTotal, expensesTotal }: { sales: Transaction[]; expenses: Transaction[]; salesTotal: number; expensesTotal: number }) {
+  const dailySales = sales.filter((item) => item.date === new Date().toISOString().slice(0, 10)).reduce((sum, item) => sum + item.amount, 0);
+  const dailyExpenses = expenses.filter((item) => item.date === new Date().toISOString().slice(0, 10)).reduce((sum, item) => sum + item.amount, 0);
+  return <>
+    <PageHeading eyebrow="BUSINESS PERFORMANCE" title="Reports" description="Review daily and overall activity in your sample workspace." action={<Button variant="outline"><Download /> Export report</Button>} />
+    <div className="sample-notice"><Sparkles /><span><strong>Sample report</strong> — example figures are for preview only and are not financial results.</span></div>
+    <div className="report-summary-grid"><MetricCard title="Today's sales" amount={dailySales} icon={<ShoppingBag />} detail="Recorded today" color="green" /><MetricCard title="Today's expenses" amount={dailyExpenses} icon={<Wallet />} detail="Recorded today" color="orange" /><MetricCard title="Sales total" amount={salesTotal} icon={<BarChart3 />} detail="All sample entries" color="blue" /><MetricCard title="Expenses total" amount={expensesTotal} icon={<CircleDollarSign />} detail="All sample entries" color="rose" /></div>
+    <div className="content-panel report-period"><div className="panel-heading"><div><h2>Daily summary</h2><p>Today, {formatDate(new Date().toISOString().slice(0, 10))}</p></div><span className="period-chip">Today <ChevronDown /></span></div><div className="report-line"><span>Sales</span><strong className="amount-positive">+{formatMoney(dailySales)}</strong></div><div className="report-line"><span>Expenses</span><strong className="amount-negative">−{formatMoney(dailyExpenses)}</strong></div><div className="report-line report-total"><span>Estimated difference</span><strong>{formatMoney(dailySales - dailyExpenses)}</strong></div></div>
+    <div className="content-panel report-period"><div className="panel-heading"><div><h2>Monthly summary</h2><p>Current month sample activity</p></div><span className="period-chip">This month <ChevronDown /></span></div><div className="report-line"><span>Sales</span><strong className="amount-positive">+{formatMoney(salesTotal)}</strong></div><div className="report-line"><span>Expenses</span><strong className="amount-negative">−{formatMoney(expensesTotal)}</strong></div><div className="report-line report-total"><span>Estimated difference</span><strong>{formatMoney(salesTotal - expensesTotal)}</strong></div></div>
+  </>;
+}
+
+function SettingsPage() {
+  return <>
+    <PageHeading eyebrow="YOUR WORKSPACE" title="Settings" description="Basic preferences for your BizStarter workspace." />
+    <div className="content-panel settings-panel"><div className="settings-row"><span className="settings-icon"><LayoutDashboard /></span><span><strong>Business profile</strong><small>Workspace name and business details</small></span><Button variant="outline" size="sm">Edit details</Button></div><div className="settings-row"><span className="settings-icon"><CircleDollarSign /></span><span><strong>Currency</strong><small>Nigerian naira (₦)</small></span><span className="settings-value">NGN</span></div><div className="settings-row"><span className="settings-icon"><FileText /></span><span><strong>Sample data</strong><small>Entries in this preview aren’t permanently saved</small></span><span className="sample-badge compact-badge"><span /> Preview</span></div></div>
+    <div className="settings-credit"><span className="brand-mark small"><span /><span /><span /></span><span>BizStarter <small>Created by Ayanfe Innovation Labs Limited.</small></span></div>
+  </>;
+}
+
+function EmptyState({ icon, title, detail }: { icon: ReactNode; title: string; detail: string }) {
+  return <div className="empty-state"><span className="empty-icon">{icon}</span><strong>{title}</strong><p>{detail}</p></div>;
+}
