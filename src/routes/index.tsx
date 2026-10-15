@@ -335,13 +335,16 @@ const [storageError, setStorageError] = useState("");
         return Array.from(records.values());
       };
 
-      const restoredTransactions = isLegacyOwner
+            const restoredTransactions = isLegacyOwner
         ? mergeById(legacyTransactions, isolatedTransactions)
         : isolatedTransactions;
 
       const restoredDebts = isLegacyOwner
         ? mergeById(legacyDebts, isolatedDebts)
         : isolatedDebts;
+
+      setTransactions(restoredTransactions);
+      setDebts(restoredDebts);
     } catch (error) {
       console.error("Could not restore BizStarter records:", error);
       setStorageError(
@@ -351,8 +354,6 @@ const [storageError, setStorageError] = useState("");
       setStorageLoaded(true);
     }
   }, [transactionsStorageKey, debtsStorageKey]);
-      setTransactions(restoredTransactions);
-      setDebts(restoredDebts);
 
   // Save records automatically after the initial restoration has completed.
   useEffect(() => {
