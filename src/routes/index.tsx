@@ -255,36 +255,61 @@ const [storageError, setStorageError] = useState("");
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All categories");
 
-    // Restore saved business records when the application opens.
+      // Restore both older records and this user's records.
   useEffect(() => {
     try {
       const savedTransactions = window.localStorage.getItem(
         transactionsStorageKey,
       );
+      const savedDebts = window.localStorage.getItem(debtsStorageKey);
 
-      const savedDebts = window.localStorage.getItem(
-        debtsStorageKey,
+      // Older records used these shared storage keys.
+      const oldTransactions = window.localStorage.getItem(
+        "bizstarter-transactions-v1",
+      );
+      const oldDebts = window.localStorage.getItem(
+        "bizstarter-debts-v1",
       );
 
-      if (savedTransactions !== null) {
-        const parsedTransactions: unknown = JSON.parse(savedTransactions);
+      const parseArray = (value: string | null): unknown[] => {
+        if (!value) return [];
 
-        if (Array.isArray(parsedTransactions)) {
-          setTransactions(parsedTransactions.filter(isValidTransaction));
+        try {
+          const parsed: unknown = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
         }
-      }
+      };
 
-      if (savedDebts !== null) {
-        const parsedDebts: unknown = JSON.parse(savedDebts);
+      const mergeById = <T extends { id: string }>(
+        older: T[],
+        current: T[],
+      ): T[] => {
+        const records = new Map<string, T>();
 
-        if (Array.isArray(parsedDebts)) {
-          setDebts(parsedDebts.filter(isValidDebt));
-        }
-      }
+        for (const item of older) records.set(item.id, item);
+        for (const item of current) records.set(item.id, item);
+
+        return Array.from(records.values());
+      };
+
+      const restoredTransactions = mergeById(
+        parseArray(oldTransactions).filter(isValidTransaction),
+        parseArray(savedTransactions).filter(isValidTransaction),
+      );
+
+      const restoredDebts = mergeById(
+        parseArray(oldDebts).filter(isValidDebt),
+        parseArray(savedDebts).filter(isValidDebt),
+      );
+
+      setTransactions(restoredTransactions);
+      setDebts(restoredDebts);
     } catch (error) {
       console.error("Could not restore BizStarter records:", error);
       setStorageError(
-        "Some saved records could not be loaded. Check your browser storage.",
+        "Some records could not be restored. Your saved data has not been intentionally deleted.",
       );
     } finally {
       setStorageLoaded(true);
