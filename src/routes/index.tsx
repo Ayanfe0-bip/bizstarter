@@ -1171,7 +1171,68 @@ setDialogKind(null);
                 </Button>
               </form>
             </>
-          ) : null}
+          ) : dialogKind === "debt" ? (
+<>
+<DialogHeader>
+<span className="dialog-icon">
+<Plus />
+</span>
+<DialogTitle>Add customer debt</DialogTitle>
+<DialogDescription>
+Record how much a customer owes your business.
+</DialogDescription>
+</DialogHeader>
+
+          <form className="entry-form" onSubmit={addDebt}>
+            <label>
+              Customer name
+              <input
+                name="name"
+                type="text"
+                placeholder="Enter customer name"
+                maxLength={100}
+                required
+              />
+            </label>
+
+            <label>
+              Total amount owed (₦)
+              <input
+                name="amountOwed"
+                type="number"
+                min="1"
+                step="1"
+                placeholder="0"
+                required
+              />
+            </label>
+
+            <label>
+              Amount already paid (₦)
+              <input
+                name="amountPaid"
+                type="number"
+                min="0"
+                step="1"
+                defaultValue="0"
+                required
+              />
+            </label>
+
+            <label>
+              Due date (optional)
+              <input
+                name="dueDate"
+                type="date"
+              />
+            </label>
+
+            <Button type="submit" className="form-submit">
+              Save customer debt
+            </Button>
+          </form>
+        </>
+      ) : null}
         </DialogContent>
       </Dialog>
     </div>
