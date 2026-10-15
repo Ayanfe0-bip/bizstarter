@@ -1423,9 +1423,646 @@ function ProfitPage({
           <strong>− {formatMoney(expensesTotal)}</strong>
         </div>
 
-        <div className="breakdown-row total">
+                <div className="breakdown-row total">
           <span>Estimated profit</span>
           <strong>{formatMoney(profit)}</strong>
         </div>
       </div>
+    </div>
+  );
+}
+
+function DebtsPage({
+  debts,
+  onAddDebt,
+  onPayDebt,
+}: {
+  debts: Debt[];
+  onAddDebt: (debt: Debt) => void;
+  onPayDebt: (id: string, amount: number) => void;
+}) {
+  const [showForm, setShowForm] = useState(false);
+  const [customerName, setCustomerName] = useState("");
+  const [description, setDescription] = useState("");
+  const [amount, setAmount] = useState("");
+  const [dueDate, setDueDate] = useState("");
+
+  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState("");
+
+  const outstandingDebts = debts.filter((debt) => debt.balance > 0);
+  const totalOutstanding = outstandingDebts.reduce(
+    (total, debt) => total + debt.balance,
+    0,
+  );
+
+  function handleAddDebt(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const numericAmount = Number(amount);
+
+    if (!customerName.trim() || !description.trim() || numericAmount <= 0) {
+      return;
+    }
+
+    const newDebt: Debt = {
+      id: crypto.randomUUID(),
+      customerName: customerName.trim(),
+      description: description.trim(),
+      amount: numericAmount,
+      balance: numericAmount,
+      dueDate,
+      createdAt: new Date().toISOString(),
+    };
+
+    onAddDebt(newDebt);
+
+    setCustomerName("");
+    setDescription("");
+    setAmount("");
+    setDueDate("");
+    setShowForm(false);
+  }
+
+  function handlePayment(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!selectedDebt) return;
+
+    const numericPayment = Number(paymentAmount);
+
+    if (
+      numericPayment <= 0 ||
+      numericPayment > selectedDebt.balance
+    ) {
+      return;
+    }
+
+    onPayDebt(selectedDebt.id, numericPayment);
+    setSelectedDebt(null);
+    setPaymentAmount("");
+  }
+
+  return (
+    <div className="page-content">
+      <PageHeading
+        eyebrow="CUSTOMER ACCOUNTS"
+        title="Customer debts"
+        description="Keep track of outstanding customer balances and payments."
+        action={
+          <button
+            className="primary-button"
+            type="button"
+            onClick={() => setShowForm(true)}
+          >
+            <Plus size={17} />
+            Record debt
+          </button>
+        }
+      />
+
+      <div className="notice-banner">
+        <Info size={18} />
+        <span>
+          <strong>BizStarter</strong> — customer balances you record here
+          are saved in this browser on this device. They are not synced
+          across devices yet.
+        </span>
+      </div>
+
+      <div className="metrics-grid">
+        <MetricCard
+          label="Outstanding balance"
+          value={formatMoney(totalOutstanding)}
+          detail={`${outstandingDebts.length} outstanding account${outstandingDebts.length === 1 ? "" : "s"}`}
+          icon={<Wallet size={19} />}
+          tone="amber"
+        />
+
+        <MetricCard
+          label="Total recorded debts"
+          value={formatMoney(
+            debts.reduce((total, debt) => total + debt.amount, 0),
+          )}
+          detail="Total value of debts recorded"
+          icon={<FileText size={19} />}
+          tone="blue"
+        />
+
+        <MetricCard
+          label="Payments received"
+          value={formatMoney(
+            debts.reduce(
+              (total, debt) => total + (debt.amount - debt.balance),
+              0,
+            ),
+          )}
+          detail="Payments recorded against debts"
+          icon={<CheckCircle2 size={19} />}
+          tone="green"
+        />
+      </div>
+
+      <div className="content-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Customer balances</h2>
+            <p>Review outstanding amounts and record payments.</p>
+          </div>
+        </div>
+
+        {debts.length === 0 ? (
+          <EmptyState
+            icon={<Wallet size={24} />}
+            title="No customer debts recorded"
+            description="When a customer owes your business money, record the amount here to keep track of it."
+            action={
+              <button
+                className="primary-button"
+                type="button"
+                onClick={() => setShowForm(true)}
+              >
+                <Plus size={17} />
+                Record first debt
+              </button>
+            }
+          />
+        ) : (
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Description</th>
+                  <th>Original amount</th>
+                  <th>Balance</th>
+                  <th>Due date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {debts.map((debt) => (
+                  <tr key={debt.id}>
+                    <td>
+                      <strong>{debt.customerName}</strong>
+                    </td>
+                    <td>{debt.description}</td>
+                    <td>{formatMoney(debt.amount)}</td>
+                    <td>
+                      <strong>{formatMoney(debt.balance)}</strong>
+                    </td>
+                    <td>
+                      {debt.dueDate
+                        ? formatDate(debt.dueDate)
+                        : "Not set"}
+                    </td>
+                    <td>
+                      <span
+                        className={`status-badge ${
+                          debt.balance <= 0 ? "status-paid" : "status-pending"
+                        }`}
+                      >
+                        {debt.balance <= 0 ? "Paid" : "Outstanding"}
+                      </span>
+                    </td>
+                    <td>
+                      {debt.balance > 0 ? (
+                        <button
+                          className="text-button"
+                          type="button"
+                          onClick={() => {
+                            setSelectedDebt(debt);
+                            setPaymentAmount("");
+                          }}
+                        >
+                          Record payment
+                        </button>
+                      ) : (
+                        <span className="muted-text">Completed</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {showForm && (
+        <Dialog
+          title="Record customer debt"
+          description="Enter the customer details and the amount they owe your business."
+          onClose={() => setShowForm(false)}
+        >
+          <form className="form-stack" onSubmit={handleAddDebt}>
+            <label className="form-field">
+              <span>Customer name</span>
+              <input
+                value={customerName}
+                onChange={(event) => setCustomerName(event.target.value)}
+                placeholder="Enter customer name"
+                required
+              />
+            </label>
+
+            <label className="form-field">
+              <span>Description</span>
+              <input
+                value={description}
+                onChange={(event) => setDescription(event.target.value)}
+                placeholder="What is the debt for?"
+                required
+              />
+            </label>
+
+            <label className="form-field">
+              <span>Amount owed (₦)</span>
+              <input
+                type="number"
+                min="1"
+                step="0.01"
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+                placeholder="0.00"
+                required
+              />
+            </label>
+
+            <label className="form-field">
+              <span>Due date (optional)</span>
+              <input
+                type="date"
+                value={dueDate}
+                onChange={(event) => setDueDate(event.target.value)}
+              />
+            </label>
+
+            <div className="dialog-actions">
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => setShowForm(false)}
+              >
+                Cancel
+              </button>
+
+              <button className="primary-button" type="submit">
+                Save debt
+              </button>
+            </div>
+          </form>
+        </Dialog>
+      )}
+
+      {selectedDebt && (
+        <Dialog
+          title="Record customer payment"
+          description={`Outstanding balance: ${formatMoney(selectedDebt.balance)}`}
+          onClose={() => {
+            setSelectedDebt(null);
+            setPaymentAmount("");
+          }}
+        >
+          <form className="form-stack" onSubmit={handlePayment}>
+            <label className="form-field">
+              <span>Payment amount (₦)</span>
+              <input
+                type="number"
+                min="0.01"
+                max={selectedDebt.balance}
+                step="0.01"
+                value={paymentAmount}
+                onChange={(event) => setPaymentAmount(event.target.value)}
+                placeholder="Enter amount received"
+                required
+              />
+            </label>
+
+            <p className="field-help">
+              The payment cannot exceed the outstanding balance.
+            </p>
+
+            <div className="dialog-actions">
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={() => {
+                  setSelectedDebt(null);
+                  setPaymentAmount("");
+                }}
+              >
+                Cancel
+              </button>
+
+              <button className="primary-button" type="submit">
+                Save payment
+              </button>
+            </div>
+          </form>
+        </Dialog>
+      )}
+    </div>
+  );
+}
+
+function ReportsPage({
+  transactions,
+}: {
+  transactions: Transaction[];
+}) {
+  const [period, setPeriod] = useState("month");
+
+  const now = new Date();
+
+  const filteredTransactions = transactions.filter((transaction) => {
+    const transactionDate = new Date(transaction.date);
+
+    if (Number.isNaN(transactionDate.getTime())) return false;
+
+    if (period === "week") {
+      const startOfWeek = new Date(now);
+      startOfWeek.setDate(now.getDate() - 6);
+      startOfWeek.setHours(0, 0, 0, 0);
+
+      return transactionDate >= startOfWeek && transactionDate <= now;
+    }
+
+    if (period === "year") {
+      return transactionDate.getFullYear() === now.getFullYear();
+    }
+
+    return (
+      transactionDate.getMonth() === now.getMonth() &&
+      transactionDate.getFullYear() === now.getFullYear()
+    );
+  });
+
+  const sales = filteredTransactions
+    .filter((transaction) => transaction.type === "sale")
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+  const expenses = filteredTransactions
+    .filter((transaction) => transaction.type === "expense")
+    .reduce((total, transaction) => total + transaction.amount, 0);
+
+  const profit = sales - expenses;
+
+  return (
+    <div className="page-content">
+      <PageHeading
+        eyebrow="BUSINESS PERFORMANCE"
+        title="Reports"
+        description="Review your business figures using the records you have entered."
+        action={
+          <label className="select-field">
+            <span className="sr-only">Report period</span>
+            <select
+              value={period}
+              onChange={(event) => setPeriod(event.target.value)}
+              aria-label="Report period"
+            >
+              <option value="week">Last 7 days</option>
+              <option value="month">Current month</option>
+              <option value="year">Current year</option>
+            </select>
+          </label>
+        }
+      />
+
+      <div className="notice-banner">
+        <Info size={18} />
+        <span>
+          <strong>Report information</strong> — figures reflect the sales
+          and expenses you have recorded. Any illustrative chart data is
+          provided for visual guidance and does not represent your actual
+          transactions.
+        </span>
+      </div>
+
+      <div className="metrics-grid">
+        <MetricCard
+          label="Recorded sales"
+          value={formatMoney(sales)}
+          detail="Based on entries for the selected period"
+          icon={<TrendingUp size={19} />}
+          tone="green"
+        />
+
+        <MetricCard
+          label="Recorded expenses"
+          value={formatMoney(expenses)}
+          detail="Based on entries for the selected period"
+          icon={<Receipt size={19} />}
+          tone="amber"
+        />
+
+        <MetricCard
+          label="Estimated profit"
+          value={formatMoney(profit)}
+          detail="Sales minus recorded expenses"
+          icon={<Wallet size={19} />}
+          tone={profit >= 0 ? "blue" : "amber"}
+        />
+      </div>
+
+      <div className="content-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Performance summary</h2>
+            <p>Based on entries in your business workspace</p>
+          </div>
+        </div>
+
+        {filteredTransactions.length === 0 ? (
+          <EmptyState
+            icon={<BarChart3 size={24} />}
+            title="No records for this period"
+            description="Record sales and expenses to build a report for the selected period."
+          />
+        ) : (
+          <div className="report-summary">
+            <div className="report-summary-row">
+              <span>Number of recorded transactions</span>
+              <strong>{filteredTransactions.length}</strong>
+            </div>
+
+            <div className="report-summary-row">
+              <span>Total recorded sales</span>
+              <strong>{formatMoney(sales)}</strong>
+            </div>
+
+            <div className="report-summary-row">
+              <span>Total recorded expenses</span>
+              <strong>{formatMoney(expenses)}</strong>
+            </div>
+
+            <div className="report-summary-row total">
+              <span>Estimated profit</span>
+              <strong>{formatMoney(profit)}</strong>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="content-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Recorded entries</h2>
+            <p>Transactions included in this report.</p>
+          </div>
+        </div>
+
+        {filteredTransactions.length === 0 ? (
+          <EmptyState
+            icon={<FileText size={24} />}
+            title="No recorded entries"
+            description="Your transactions for this period will appear here."
+          />
+        ) : (
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {[...filteredTransactions]
+                  .sort(
+                    (a, b) =>
+                      new Date(b.date).getTime() -
+                      new Date(a.date).getTime(),
+                  )
+                  .map((transaction) => (
+                    <tr key={transaction.id}>
+                      <td>{formatDate(transaction.date)}</td>
+                      <td>
+                        <strong>{transaction.description}</strong>
+                      </td>
+                      <td>{transaction.category}</td>
+                      <td>
+                        <span
+                          className={`status-badge ${
+                            transaction.type === "sale"
+                              ? "status-paid"
+                              : "status-pending"
+                          }`}
+                        >
+                          {transaction.type === "sale" ? "Sale" : "Expense"}
+                        </span>
+                      </td>
+                      <td>{formatMoney(transaction.amount)}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SettingsPage() {
+  return (
+    <div className="page-content">
+      <PageHeading
+        eyebrow="PREFERENCES"
+        title="Settings"
+        description="Review your workspace information and how your records are stored."
+      />
+
+      <div className="content-panel settings-panel">
+        <div className="settings-item">
+          <div className="settings-icon">
+            <Building2 size={20} />
+          </div>
+
+          <div className="settings-copy">
+            <h3>Business workspace</h3>
+            <p>
+              Use BizStarter to organise your sales, expenses, customer
+              balances and business reports.
+            </p>
+          </div>
+        </div>
+
+        <div className="settings-item">
+          <div className="settings-icon">
+            <Database size={20} />
+          </div>
+
+          <div className="settings-copy">
+            <h3>Local storage</h3>
+            <p>
+              Your records are saved in this browser on this device.
+              Clearing browser data or changing devices may make your
+              records unavailable. Cloud backup and cross-device syncing
+              are not available yet.
+            </p>
+          </div>
+
+          <span className="settings-status">On this device</span>
+        </div>
+
+        <div className="settings-item">
+          <div className="settings-icon">
+            <ShieldCheck size={20} />
+          </div>
+
+          <div className="settings-copy">
+            <h3>Data and privacy</h3>
+            <p>
+              Avoid entering passwords, bank card details or other
+              sensitive information into business notes.
+            </p>
+          </div>
+        </div>
+
+        <div className="settings-item">
+          <div className="settings-icon">
+            <Info size={20} />
+          </div>
+
+          <div className="settings-copy">
+            <h3>About BizStarter</h3>
+            <p>
+              BizStarter is a business management project created by
+              Ayanfe Innovation Labs Limited.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function EmptyState({
+  icon,
+  title,
+  description,
+  action,
+}: {
+  icon: React.ReactNode;
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="empty-state">
+      <div className="empty-state-icon">{icon}</div>
+      <h3>{title}</h3>
+      <p>{description}</p>
+      {action && <div className="empty-state-action">{action}</div>}
+    </div>
+  );
+}
    
