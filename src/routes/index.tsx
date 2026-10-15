@@ -488,7 +488,7 @@ const [
         );
 
         const mergedDebts = mergeById(cloudDebts, localDebts);
-
+        const mergedProducts = cloudProducts;
         if (mergedTransactions.length > 0) {
           const { error } = await supabase
             .from("bizstarter_transactions")
@@ -530,6 +530,7 @@ const [
 
         setTransactions(mergedTransactions);
         setDebts(mergedDebts);
+        setproducts(mergedproducts);
         setCloudReady(true);
         setStorageError("");
       } catch (error) {
