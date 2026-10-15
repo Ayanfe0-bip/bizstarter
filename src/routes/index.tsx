@@ -1764,9 +1764,11 @@ function ProfitPage({
 function DebtsPage({
   debts,
   onPayment,
+  onAddDebt,
 }: {
   debts: CustomerDebt[];
   onPayment: () => void;
+  onAddDebt: () => void;
 }) {
   const outstandingDebts = debts.filter(
     (debt) => debt.amountOwed > debt.amountPaid,
@@ -1792,7 +1794,14 @@ function DebtsPage({
               Track money customers owe your business and payments received.
             </p>
           </div>
-
+          <button
+  className="primary-button"
+  type="button"
+  onClick={onAddDebt}
+>
+  <Plus size={17} />
+  Add customer debt
+</button>
           <button
             className="primary-button"
             type="button"
