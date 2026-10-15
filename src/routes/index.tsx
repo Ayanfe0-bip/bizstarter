@@ -90,6 +90,7 @@ const pageLinks: {
   { id: "expenses", label: "Expenses", icon: Wallet },
   { id: "profit", label: "Profit overview", icon: TrendingUp },
   { id: "debts", label: "Customer debts", icon: HandCoins },
+  { id: "inventory", label: "Inventory", icon: ClipboardList },
   { id: "reports", label: "Reports", icon: BarChart3 },
   { id: "settings", label: "Settings", icon: Settings2 },
 ];
