@@ -320,7 +320,149 @@ const [storageError, setStorageError] = useState("");
     transactionsStorageKey,
     debtsStorageKey,
   ]);
+  // Load cloud records and safely merge them with this user's local records.
+  useEffect(() => {
+    if (!storageLoaded) return;
 
+    let cancelled = false;
+
+    async function syncRecords() {
+      try {
+        const [transactionsResult, debtsResult] = await Promise.all([
+          supabase
+            .from("bizstarter_transactions")
+            .select("*")
+            .eq("user_id", userId),
+
+          supabase
+            .from("bizstarter_customer_debts")
+            .select("*")
+            .eq("user_id", userId),
+        ]);
+
+        if (transactionsResult.error) throw transactionsResult.error;
+        if (debtsResult.error) throw debtsResult.error;
+
+        const validUuid = (id: string) =>
+          /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+
+        const localTransactions: Transaction[] = transactions
+          .filter(isValidTransaction)
+          .map((item) =>
+            validUuid(item.id)
+              ? item
+              : { ...item, id: crypto.randomUUID() },
+          );
+
+        const localDebts: CustomerDebt[] = debts
+          .filter(isValidDebt)
+          .map((item) =>
+            validUuid(item.id)
+              ? item
+              : { ...item, id: crypto.randomUUID() },
+          );
+
+        const cloudTransactions: Transaction[] =
+          (transactionsResult.data ?? []).map((row) => ({
+            id: row.id,
+            kind: row.kind as TransactionKind,
+            description: row.description,
+            amount: Number(row.amount),
+            category: row.category,
+            date: row.transaction_date,
+          }));
+
+        const cloudDebts: CustomerDebt[] =
+          (debtsResult.data ?? []).map((row) => ({
+            id: row.id,
+            name: row.name,
+            amountOwed: Number(row.amount_owed),
+            amountPaid: Number(row.amount_paid),
+            dueDate: row.due_date ?? "",
+          }));
+
+        const mergeById = <T extends { id: string }>(
+          cloud: T[],
+          local: T[],
+        ): T[] => {
+          const records = new Map(
+            cloud.map((item) => [item.id, item]),
+          );
+
+          for (const item of local) {
+            records.set(item.id, item);
+          }
+
+          return Array.from(records.values());
+        };
+
+        const mergedTransactions = mergeById(
+          cloudTransactions,
+          localTransactions,
+        );
+
+        const mergedDebts = mergeById(cloudDebts, localDebts);
+
+        if (mergedTransactions.length > 0) {
+          const { error } = await supabase
+            .from("bizstarter_transactions")
+            .upsert(
+              mergedTransactions.map((item) => ({
+                id: item.id,
+                user_id: userId,
+                kind: item.kind,
+                description: item.description,
+                amount: item.amount,
+                category: item.category,
+                transaction_date: item.date,
+              })),
+              { onConflict: "id" },
+            );
+
+          if (error) throw error;
+        }
+
+        if (mergedDebts.length > 0) {
+          const { error } = await supabase
+            .from("bizstarter_customer_debts")
+            .upsert(
+              mergedDebts.map((item) => ({
+                id: item.id,
+                user_id: userId,
+                name: item.name,
+                amount_owed: item.amountOwed,
+                amount_paid: item.amountPaid,
+                due_date: item.dueDate || null,
+              })),
+              { onConflict: "id" },
+            );
+
+          if (error) throw error;
+        }
+
+        if (cancelled) return;
+
+        setTransactions(mergedTransactions);
+        setDebts(mergedDebts);
+        setCloudReady(true);
+        setStorageError("");
+      } catch (error) {
+        console.error("BizStarter cloud migration failed:", error);
+
+        if (!cancelled) {
+          setStorageError(
+            "Cloud sync failed. Your existing records remain on this device.",
+          );
+        }
+      }
+    }
+
+    void syncRecords();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [storageLoaded, userId]);
   const sales = useMemo(
     () => transactions.filter((transaction) => transaction.kind === "sale"),
     [transactions],
