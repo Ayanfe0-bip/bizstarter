@@ -3,6 +3,9 @@ import {
   ArrowDownLeft,
   ArrowRight,
   ArrowUpRight,
+  info,
+  receipt,
+  filetext,
   BarChart3,
   Bell,
   ChevronDown,
@@ -691,13 +694,8 @@ function Index() {
           )}
 
           {page === "reports" && (
-            <ReportsPage
-              sales={sales}
-              expenses={expenses}
-              salesTotal={salesTotal}
-              expensesTotal={expensesTotal}
-            />
-          )}
+  <ReportsPage transactions={transactions} />
+)}
 
           {page === "settings" && <SettingsPage />}
         </main>    <footer className="workspace-footer">
