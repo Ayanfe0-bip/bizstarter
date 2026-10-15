@@ -577,7 +577,17 @@ const [
             amount_paid: item.amountPaid,
             due_date: item.dueDate || null,
           }));
-
+        const productRows = products.map((item) => ({
+  id: item.id,
+  user_id: userId,
+  name: item.name,
+  sku: item.sku || null,
+  category: item.category || null,
+  cost_price: item.costPrice,
+  selling_price: item.sellingPrice,
+  quantity_in_stock: item.quantityInStock,
+  low_stock_threshold: item.lowStockThreshold,
+}));
           if (transactionRows.length > 0) {
             const { error } = await supabase
               .from("bizstarter_transactions")
