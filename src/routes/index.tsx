@@ -50,6 +50,7 @@ import {
   chartData,
   expenseCategories,
   type CustomerDebt,
+  type Product,
   type Transaction,
   type TransactionKind,
   type WorkspacePage,
