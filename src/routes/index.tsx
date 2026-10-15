@@ -239,7 +239,8 @@ return <Index key={session.user.id} userId={session.user.id} />;
 }
 function Index({ userId }: { userId: string }) {
 const [page, setPage] = useState<WorkspacePage | "home">("home");
-
+  const transactionsStorageKey = `${TRANSACTIONS_STORAGE_KEY_PREFIX}-${userId}`;
+  const debtsStorageKey = `${DEBTS_STORAGE_KEY_PREFIX}-${userId}`;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [debts, setDebts] = useState<CustomerDebt[]>([]);
   const [storageLoaded, setStorageLoaded] = useState(false);
@@ -254,13 +255,13 @@ const [page, setPage] = useState<WorkspacePage | "home">("home");
   const [categoryFilter, setCategoryFilter] = useState("All categories");
 
   // Restore saved business records when the application opens.
-  useEffect(() => {
+  (() => {
     try {
       const savedTransactions = window.localStorage.getItem(
-        TRANSACTIONS_STORAGE_KEY,
+        transactionstoragekey
       );
 
-      const savedDebts = window.localStorage.getItem(DEBTS_STORAGE_KEY);
+      const savedDebts = window.localStorage.getItem(debitstoragekey);
 
       if (savedTransactions !== null) {
         const parsedTransactions: unknown = JSON.parse(savedTransactions);
