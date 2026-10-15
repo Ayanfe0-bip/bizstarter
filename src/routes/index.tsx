@@ -1228,6 +1228,97 @@ function ReportsPage({ sales, expenses, salesTotal, expensesTotal }: {
       <MetricCard title="Expenses total" amount={expensesTotal} icon={<CircleDollarSign />} detail="All sample entries" color="rose" />
     </div>
 
+     <div className="content-panel report-period">
+      <div className="panel-heading">
+        <div>
+          <h2>Daily summary</h2>
+          <p>Today, {formatDate(new Date().toISOString().slice(0, 10))}</p>
+        </div>
+        <span className="period-chip">Today <ChevronDown /></span>
+      </div>
+      <div className="report-line">
+        <span>Sales</span>
+        <strong className="amount-positive">+{formatMoney(dailySales)}</strong>
+      </div>
+      <div className="report-line">
+        <span>Expenses</span>
+        <strong className="amount-negative">−{formatMoney(dailyExpenses)}</strong>
+      </div>
+      <div className="report-line report-total">
+        <span>Estimated difference</span>
+        <strong>{formatMoney(dailySales - dailyExpenses)}</strong>
+      </div>
+    </div>
+
     <div className="content-panel report-period">
+      <div className="panel-heading">
+        <div>
+          <h2>Monthly summary</h2>
+          <p>Current month sample activity</p>
+        </div>
+        <span className="period-chip">This month <ChevronDown /></span>
+      </div>
+      <div className="report-line">
+        <span>Sales</span>
+        <strong className="amount-positive">+{formatMoney(salesTotal)}</strong>
+      </div>
+      <div className="report-line">
+        <span>Expenses</span>
+        <strong className="amount-negative">−{formatMoney(expensesTotal)}</strong>
+      </div>
+      <div className="report-line report-total">
+        <span>Estimated difference</span>
+        <strong>{formatMoney(salesTotal - expensesTotal)}</strong>
+      </div>
+    </div>
+  </>;
+}
+
+function SettingsPage() {
+  return <>
+    <PageHeading
+      eyebrow="YOUR WORKSPACE"
+      title="Settings"
+      description="Basic preferences for your BizStarter workspace."
+    />
+
+    <div className="content-panel settings-panel">
+      <div className="settings-row">
+        <span className="settings-icon"><LayoutDashboard /></span>
+        <span><strong>Business profile</strong><small>Workspace name and business details</small></span>
+        <Button variant="outline" size="sm">Edit details</Button>
+      </div>
+
+      <div className="settings-row">
+        <span className="settings-icon"><CircleDollarSign /></span>
+        <span><strong>Currency</strong><small>Nigerian naira (₦)</small></span>
+        <span className="settings-value">NGN</span>
+      </div>
+
+      <div className="settings-row">
+        <span className="settings-icon"><FileText /></span>
+        <span><strong>Sample data</strong><small>Entries in this preview aren’t permanently saved</small></span>
+        <span className="sample-badge compact-badge"><span /> Preview</span>
+      </div>
+    </div>
+
+    <div className="settings-credit">
+      <span className="brand-mark small"><span /><span /><span /></span>
+      <span>BizStarter <small>Created by Ayanfe Innovation Labs Limited.</small></span>
+    </div>
+  </>;
+}
+
+function EmptyState({ icon, title, detail }: {
+  icon: ReactNode;
+  title: string;
+  detail: string;
+}) {
+  return <div className="empty-state">
+    <span className="empty-icon">{icon}</span>
+    <strong>{title}</strong>
+    <p>{detail}</p>
+  </div>;
+}
   
          
