@@ -395,18 +395,27 @@ const [storageError, setStorageError] = useState("");
 
     async function syncRecords() {
       try {
-        const [transactionsResult, debtsResult] = await Promise.all([
-          supabase
-            .from("bizstarter_transactions")
-            .select("*")
-            .eq("user_id", userId),
+        
+const [
+  transactionsResult,
+  debtsResult,
+  productsResult,
+] = await Promise.all([
+  supabase
+    .from("bizstarter_transactions")
+    .select("*")
+    .eq("user_id", userId),
 
-          supabase
-            .from("bizstarter_customer_debts")
-            .select("*")
-            .eq("user_id", userId),
-        ]);
+  supabase
+    .from("bizstarter_customer_debts")
+    .select("*")
+    .eq("user_id", userId),
 
+  supabase
+    .from("bizstarter_products")
+    .select("*")
+    .eq("user_id", userId),
+]);
         if (transactionsResult.error) throw transactionsResult.error;
         if (debtsResult.error) throw debtsResult.error;
 
