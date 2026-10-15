@@ -263,7 +263,10 @@ const [storageError, setStorageError] = useState("");
       );
       const savedDebts = window.localStorage.getItem(debtsStorageKey);
 
-      // Older records used these shared storage keys.
+      // Legacy records were stored under shared keys before accounts
+      // had separate local storage. Keep them with the original owner.
+      const legacyOwnerKey = "bizstarter-legacy-owner-v1";
+
       const oldTransactions = window.localStorage.getItem(
         "bizstarter-transactions-v1",
       );
@@ -282,6 +285,44 @@ const [storageError, setStorageError] = useState("");
         }
       };
 
+      const legacyTransactions = parseArray(oldTransactions).filter(
+        isValidTransaction,
+      );
+      const legacyDebts = parseArray(oldDebts).filter(isValidDebt);
+
+      let legacyOwnerId = window.localStorage.getItem(legacyOwnerKey);
+
+      if (
+        !legacyOwnerId &&
+        (legacyTransactions.length > 0 || legacyDebts.length > 0)
+      ) {
+        legacyOwnerId = userId;
+        window.localStorage.setItem(legacyOwnerKey, userId);
+      }
+
+      const isLegacyOwner = legacyOwnerId === userId;
+
+      const legacyTransactionIds = new Set(
+        legacyTransactions.map((item) => item.id),
+      );
+      const legacyDebtIds = new Set(legacyDebts.map((item) => item.id));
+
+      const savedTransactionRecords = parseArray(savedTransactions).filter(
+        isValidTransaction,
+      );
+      const savedDebtRecords = parseArray(savedDebts).filter(isValidDebt);
+
+      // Do not load legacy records into another account.
+      const isolatedTransactions = isLegacyOwner
+        ? savedTransactionRecords
+        : savedTransactionRecords.filter(
+            (item) => !legacyTransactionIds.has(item.id),
+          );
+
+      const isolatedDebts = isLegacyOwner
+        ? savedDebtRecords
+        : savedDebtRecords.filter((item) => !legacyDebtIds.has(item.id));
+
       const mergeById = <T extends { id: string }>(
         older: T[],
         current: T[],
@@ -294,27 +335,16 @@ const [storageError, setStorageError] = useState("");
         return Array.from(records.values());
       };
 
-      const restoredTransactions = mergeById(
-        parseArray(oldTransactions).filter(isValidTransaction),
-        parseArray(savedTransactions).filter(isValidTransaction),
-      );
+      const restoredTransactions = isLegacyOwner
+        ? mergeById(legacyTransactions, isolatedTransactions)
+        : isolatedTransactions;
 
-      const restoredDebts = mergeById(
-        parseArray(oldDebts).filter(isValidDebt),
-        parseArray(savedDebts).filter(isValidDebt),
-      );
+      const restoredDebts = isLegacyOwner
+        ? mergeById(legacyDebts, isolatedDebts)
+        : isolatedDebts;
 
       setTransactions(restoredTransactions);
       setDebts(restoredDebts);
-    } catch (error) {
-      console.error("Could not restore BizStarter records:", error);
-      setStorageError(
-        "Some records could not be restored. Your saved data has not been intentionally deleted.",
-      );
-    } finally {
-      setStorageLoaded(true);
-    }
-  }, [transactionsStorageKey, debtsStorageKey]);
 
   // Save records automatically after the initial restoration has completed.
   useEffect(() => {
