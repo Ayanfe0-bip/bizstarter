@@ -603,7 +603,13 @@ const [
 
             if (error) throw error;
           }
+          if (productRows.length > 0) {
+  const { error } = await supabase
+    .from("bizstarter_products")
+    .upsert(productRows, { onConflict: "id" });
 
+  if (error) throw error;
+}
           if (!cancelled) {
             setStorageError("");
           }
@@ -625,7 +631,7 @@ const [
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [cloudReady, transactions, debts, userId]);
+  }, [cloudReady, transactions, debts, products, userId]);
   const sales = useMemo(
     () => transactions.filter((transaction) => transaction.kind === "sale"),
     [transactions],
