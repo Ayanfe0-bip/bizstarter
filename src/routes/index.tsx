@@ -991,7 +991,17 @@ const [storageError, setStorageError] = useState("");
   <ReportsPage transactions={transactions} />
 )}
 
-          {page === "settings" && <SettingsPage />}
+        {page === "settings" && (
+  <SettingsPage
+    onSignOut={async () => {
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        setStorageError("Could not sign out. Please try again.");
+      }
+    }}
+  />
+)}
         </main>    <footer className="workspace-footer">
       <span>
         BizStarter{" "}
@@ -2060,7 +2070,11 @@ function ReportsPage({
   );
 }
 
-function SettingsPage() {
+function SettingsPage({
+  onSignOut,
+}: {
+  onSignOut: () => Promise<void>;
+}) {
   return (
     <div className="page-content">
       <PageHeading
@@ -2068,7 +2082,15 @@ function SettingsPage() {
         title="Settings"
         description="Review your workspace information and how your records are stored."
       />
-
+        <div className="mt-6">
+          <button
+            type="button"
+            className="primary-button"
+            onClick={() => void onSignOut()}
+          >
+            Sign Out
+          </button>
+        </div>
       <div className="content-panel settings-panel">
         <div className="settings-item">
           <div className="settings-icon">
