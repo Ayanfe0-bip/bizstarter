@@ -342,7 +342,15 @@ const [storageError, setStorageError] = useState("");
       const restoredDebts = isLegacyOwner
         ? mergeById(legacyDebts, isolatedDebts)
         : isolatedDebts;
-
+    } catch (error) {
+      console.error("Could not restore BizStarter records:", error);
+      setStorageError(
+        "Some records could not be restored. Your saved data has not been intentionally deleted.",
+      );
+    } finally {
+      setStorageLoaded(true);
+    }
+  }, [transactionsStorageKey, debtsStorageKey]);
       setTransactions(restoredTransactions);
       setDebts(restoredDebts);
 
