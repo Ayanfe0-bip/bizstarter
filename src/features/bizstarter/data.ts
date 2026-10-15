@@ -4,6 +4,7 @@ export type WorkspacePage =
   | "expenses"
   | "profit"
   | "debts"
+  | "inventory"
   | "reports"
   | "settings";
 
