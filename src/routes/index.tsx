@@ -244,7 +244,8 @@ const [page, setPage] = useState<WorkspacePage | "home">("home");
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [debts, setDebts] = useState<CustomerDebt[]>([]);
   const [storageLoaded, setStorageLoaded] = useState(false);
-  const [storageError, setStorageError] = useState("");
+const [cloudReady, setCloudReady] = useState(false);
+const [storageError, setStorageError] = useState("");
 
   const [dialogKind, setDialogKind] = useState<
     TransactionKind | "payment" | null
