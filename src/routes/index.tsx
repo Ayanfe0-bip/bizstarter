@@ -576,93 +576,100 @@ const [storageError, setStorageError] = useState("");
     (debt) => debt.amountOwed > debt.amountPaid,
   ).length;
 
-  function addTransaction(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+        function addTransaction(event: FormEvent<HTMLFormElement>) {
+event.preventDefault();
 
-    if (dialogKind !== "sale" && dialogKind !== "expense") return;
+if (dialogKind !== "sale" && dialogKind !== "expense") return;
 
-    const formData = new FormData(event.currentTarget);
+const formData = new FormData(event.currentTarget);
 
-    const description = String(formData.get("description") ?? "").trim();
-    const amount = Number(formData.get("amount"));
-    const date = String(formData.get("date") ?? "");
+const description = String(formData.get("description") ?? "").trim();
+const amount = Number(formData.get("amount"));
+const date = String(formData.get("date") ?? "");
 
-    const category =
-      dialogKind === "sale"
-        ? "Product sales"
-        : String(formData.get("category") ?? "Other");
+const category =
+  dialogKind === "sale"
+    ? "Product sales"
+    : String(formData.get("category") ?? "Other");
 
-    if (!description || !Number.isFinite(amount) || amount <= 0 || !date) {
-      return;
-    }
-
-    const newTransaction: Transaction = {
-      id: crypto.randomUUID(),
-      kind: dialogKind,
-      description,
-      amount,
-      category,
-      date,
-    };
-
-    setTransactions((current) => [newTransaction, ...current]);
-    setDialogKind(null);
-      function addDebt(event: FormEvent<HTMLFormElement>) {
-  event.preventDefault();
-
-  const formData = new FormData(event.currentTarget);
-
-  const name = String(formData.get("name") ?? "").trim();
-  const amountOwed = Number(formData.get("amountOwed"));
-  const amountPaid = Number(formData.get("amountPaid") ?? 0);
-  const dueDate = String(formData.get("dueDate") ?? "");
-
-  if (
-    !name ||
-    !Number.isFinite(amountOwed) ||
-    !Number.isFinite(amountPaid) ||
-    amountOwed <= 0 ||
-    amountPaid < 0 ||
-    amountPaid > amountOwed
-  ) {
-    return;
-  }
-
-  const newDebt: CustomerDebt = {
-    id: crypto.randomUUID(),
-    name,
-    amountOwed,
-    amountPaid,
-    dueDate,
-  };
-
-  setDebts((current) => [newDebt, ...current]);
-  setDialogKind(null);
+if (!description || !Number.isFinite(amount) || amount <= 0 || !date) {
+  return;
 }
-    event.preventDefault();
 
-    const formData = new FormData(event.currentTarget);
+const newTransaction: Transaction = {
+  id: crypto.randomUUID(),
+  kind: dialogKind,
+  description,
+  amount,
+  category,
+  date,
+};
 
-    const debtId = String(formData.get("debtId") ?? "");
-    const payment = Number(formData.get("payment"));
+setTransactions((current) => [newTransaction, ...current]);
+setDialogKind(null);
 
-    if (!debtId || !Number.isFinite(payment) || payment <= 0) return;
+}
 
-    setDebts((current) =>
-      current.map((debt) =>
-        debt.id === debtId
-          ? {
-              ...debt,
-              amountPaid: Math.min(
-                debt.amountOwed,
-                debt.amountPaid + payment,
-              ),
-            }
-          : debt,
-      ),
-    );
+function addDebt(event: FormEvent<HTMLFormElement>) {
+event.preventDefault();
 
-    setDialogKind(null);
+const formData = new FormData(event.currentTarget);
+
+const name = String(formData.get("name") ?? "").trim();
+const amountOwed = Number(formData.get("amountOwed"));
+const amountPaid = Number(formData.get("amountPaid") ?? 0);
+const dueDate = String(formData.get("dueDate") ?? "");
+
+if (
+  !name ||
+  !Number.isFinite(amountOwed) ||
+  !Number.isFinite(amountPaid) ||
+  amountOwed <= 0 ||
+  amountPaid < 0 ||
+  amountPaid > amountOwed
+) {
+  return;
+}
+
+const newDebt: CustomerDebt = {
+  id: crypto.randomUUID(),
+  name,
+  amountOwed,
+  amountPaid,
+  dueDate,
+};
+
+setDebts((current) => [newDebt, ...current]);
+setDialogKind(null);
+
+}
+
+function recordPayment(event: FormEvent<HTMLFormElement>) {
+event.preventDefault();
+
+const formData = new FormData(event.currentTarget);
+
+const debtId = String(formData.get("debtId") ?? "");
+const payment = Number(formData.get("payment"));
+
+if (!debtId || !Number.isFinite(payment) || payment <= 0) return;
+
+setDebts((current) =>
+  current.map((debt) =>
+    debt.id === debtId
+      ? {
+          ...debt,
+          amountPaid: Math.min(
+            debt.amountOwed,
+            debt.amountPaid + payment,
+          ),
+        }
+      : debt,
+  ),
+);
+
+setDialogKind(null);
+
   }
 
   const filteredTransactions = transactions.filter((transaction) => {
