@@ -5,7 +5,6 @@ import {
   ArrowUpRight,
   info,
   receipt,
-  filetext,
   BarChart3,
   Bell,
   ChevronDown,
