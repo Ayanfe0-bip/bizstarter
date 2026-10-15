@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import type { Session } from "@supabase/supabase-js";
 import AuthScreen from "@/features/bizstarter/AuthScreen";
 import { supabase } from "@/lib/supabase";
+import {
 ArrowDownLeft,
 ArrowRight,
 ArrowUpRight,
