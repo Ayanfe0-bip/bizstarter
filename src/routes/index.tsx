@@ -21,7 +21,6 @@ import {
   Sparkles,
   TrendingUp,
   Wallet,
-  X,
 } from "lucide-react";
 import {
   useEffect,
@@ -54,7 +53,7 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "A simple business workspace to record sales, keep track of expenses, and understand your day-to-day performance.",
+          "A simple business workspace to record sales, manage expenses, track customer balances, and understand business performance.",
       },
       {
         property: "og:title",
@@ -63,7 +62,7 @@ export const Route = createFileRoute("/")({
       {
         property: "og:description",
         content:
-          "A simple business workspace to record sales, keep track of expenses, and understand your day-to-day performance.",
+          "A simple business workspace to record sales, manage expenses, track customer balances, and understand business performance.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -101,7 +100,7 @@ const featureCards = [
   },
   {
     title: "Profit overview",
-    detail: "See a thoughtful estimate, at a glance.",
+    detail: "See a thoughtful estimate at a glance.",
     icon: TrendingUp,
     tone: "blue",
   },
@@ -264,8 +263,7 @@ function Index() {
   );
 
   const expenses = useMemo(
-    () =>
-      transactions.filter((transaction) => transaction.kind === "expense"),
+    () => transactions.filter((transaction) => transaction.kind === "expense"),
     [transactions],
   );
 
@@ -297,12 +295,7 @@ function Index() {
         ? "Product sales"
         : String(formData.get("category") ?? "Other");
 
-    if (
-      !description ||
-      !Number.isFinite(amount) ||
-      amount <= 0 ||
-      !date
-    ) {
+    if (!description || !Number.isFinite(amount) || amount <= 0 || !date) {
       return;
     }
 
@@ -403,10 +396,7 @@ function Index() {
               </p>
 
               <div className="hero-actions">
-                <Button
-                  size="lg"
-                  onClick={() => setPage("dashboard")}
-                >
+                <Button size="lg" onClick={() => setPage("dashboard")}>
                   Get started <ArrowRight />
                 </Button>
 
@@ -425,7 +415,7 @@ function Index() {
 
               <div className="hero-footnote">
                 <span className="sample-dot" />
-                Your business records, saved in this browser
+                Your records, saved in this browser on this device
               </div>
             </div>
 
@@ -712,69 +702,140 @@ function Index() {
           {page === "settings" && <SettingsPage />}
         </main>
 
-       <footer className="workspace-footer">
-  <span>BizStarter <span className="footer-separator">·</span> Sample workspace</span>
-  <span>Created by Ayanfe Innovation Labs Limited</span>
-</footer>
+        <footer className="workspace-footer">
+          <span>
+                    <footer className="workspace-footer">
+          <span>
+            BizStarter <span className="footer-separator">·</span> Business
+            workspace
+          </span>
+          <span>Created by Ayanfe Innovation Labs Limited</span>
+        </footer>
       </div>
 
-      <Dialog open={dialogKind !== null} onOpenChange={(open) => { if (!open) setDialogKind(null); }}>
+      <Dialog
+        open={dialogKind !== null}
+        onOpenChange={(open) => {
+          if (!open) setDialogKind(null);
+        }}
+      >
         <DialogContent className="entry-dialog">
-          {dialogKind === "sale" || dialogKind === "expense" ? <>
-            <DialogHeader>
-              <span className="dialog-icon"><Plus /></span>
-              <DialogTitle>{dialogKind === "sale" ? "Record a sale" : "Record an expense"}</DialogTitle>
-              <DialogDescription>Your information stays in this sample workspace and resets when refreshed.</DialogDescription>
-            </DialogHeader>
-            <form className="entry-form" onSubmit={addTransaction}>
-              <label>
-                Description
-                <input name="description" placeholder={dialogKind === "sale" ? "e.g. Customer order" : "e.g. Market supplies"} required maxLength={80} />
-              </label>
-              <label>
-                Amount (₦)
-                <input name="amount" type="number" min="1" step="1" placeholder="0" required />
-              </label>
-              {dialogKind === "expense" && (
+          {dialogKind === "sale" || dialogKind === "expense" ? (
+            <>
+              <DialogHeader>
+                <span className="dialog-icon">
+                  <Plus />
+                </span>
+                <DialogTitle>
+                  {dialogKind === "sale"
+                    ? "Record a sale"
+                    : "Record an expense"}
+                </DialogTitle>
+                <DialogDescription>
+                  Your records are saved in this browser on this device. They
+                  are not yet synced across devices.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form className="entry-form" onSubmit={addTransaction}>
                 <label>
-                  Category
-                  <select name="category" defaultValue="Inventory">
-                    {expenseCategories.map((category) => <option key={category}>{category}</option>)}
+                  Description
+                  <input
+                    name="description"
+                    placeholder={
+                      dialogKind === "sale"
+                        ? "e.g. Customer order"
+                        : "e.g. Market supplies"
+                    }
+                    required
+                    maxLength={80}
+                  />
+                </label>
+
+                <label>
+                  Amount (₦)
+                  <input
+                    name="amount"
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="0"
+                    required
+                  />
+                </label>
+
+                {dialogKind === "expense" && (
+                  <label>
+                    Category
+                    <select name="category" defaultValue="Inventory">
+                      {expenseCategories.map((category) => (
+                        <option key={category}>{category}</option>
+                      ))}
+                    </select>
+                  </label>
+                )}
+
+                <label>
+                  Date
+                  <input
+                    name="date"
+                    type="date"
+                    defaultValue={getToday()}
+                    required
+                  />
+                </label>
+
+                <Button type="submit" className="form-submit">
+                  Save {dialogKind === "sale" ? "sale" : "expense"}
+                </Button>
+              </form>
+            </>
+          ) : dialogKind === "payment" ? (
+            <>
+              <DialogHeader>
+                <span className="dialog-icon">
+                  <HandCoins />
+                </span>
+                <DialogTitle>Record a payment</DialogTitle>
+                <DialogDescription>
+                  Apply a payment to an existing customer balance.
+                </DialogDescription>
+              </DialogHeader>
+
+              <form className="entry-form" onSubmit={recordPayment}>
+                <label>
+                  Customer
+                  <select name="debtId" required>
+                    {debts
+                      .filter((debt) => debt.amountOwed > debt.amountPaid)
+                      .map((debt) => (
+                        <option key={debt.id} value={debt.id}>
+                          {debt.name} ·{" "}
+                          {formatMoney(debt.amountOwed - debt.amountPaid)}{" "}
+                          remaining
+                        </option>
+                      ))}
                   </select>
                 </label>
-              )}
-              <label>
-                Date
-                <input name="date" type="date" defaultValue={new Date().toISOString().slice(0, 10)} required />
-              </label>
-              <Button type="submit" className="form-submit">
-                Save {dialogKind === "sale" ? "sale" : "expense"}
-              </Button>
-            </form>
-          </> : dialogKind === "payment" ? <>
-            <DialogHeader>
-              <span className="dialog-icon"><HandCoins /></span>
-              <DialogTitle>Record a payment</DialogTitle>
-              <DialogDescription>Apply a payment to an existing customer balance.</DialogDescription>
-            </DialogHeader>
-            <form className="entry-form" onSubmit={recordPayment}>
-              <label>
-                Customer
-                <select name="debtId" required>
-                  {debts.filter((debt) => debt.amountOwed > debt.amountPaid).map((debt) => (
-                    <option key={debt.id} value={debt.id}>
-                      {debt.name} · {formatMoney(debt.amountOwed - debt.amountPaid)} remaining
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Payment received (₦)
-                <input name="payment" type="number" min="1" step="1" placeholder="0" required />
-              </label>
-              <Button type="submit" className="form-submit">Record payment</Button>
-            </form>
-          </> : null}
+
+                <label>
+                  Payment received (₦)
+                  <input
+                    name="payment"
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="0"
+                    required
+                  />
+                </label>
+
+                <Button type="submit" className="form-submit">
+                  Record payment
+                </Button>
+              </form>
+            </>
+          ) : null}
         </DialogContent>
       </Dialog>
     </div>
@@ -782,60 +843,130 @@ function Index() {
 }
 
 function BrandMark() {
-  return <span className="brand-mark" aria-hidden="true"><span /><span /><span /></span>;
+  return (
+    <span className="brand-mark" aria-hidden="true">
+      <span />
+      <span />
+      <span />
+    </span>
+  );
 }
 
-function DashboardPreview({ salesTotal, expensesTotal }: { salesTotal: number; expensesTotal: number }) {
-  return <div className="dashboard-preview">
-    <div className="preview-top">
-      <div className="preview-brand"><BrandMark /><span>BizStarter</span></div>
-      <span className="preview-window-dots"><i /><i /><i /></span>
-    </div>
-    <div className="preview-greeting">
-      <span>MONDAY, 15 JUNE</span>
-      <strong>Your business, at a glance</strong>
-    </div>
-    <div className="preview-metrics">
-      <PreviewMetric label="Total sales" value={formatMoney(salesTotal)} icon={<ArrowUpRight />} variant="green" />
-      <PreviewMetric label="Expenses" value={formatMoney(expensesTotal)} icon={<ArrowDownLeft />} variant="orange" />
-    </div>
-    <div className="preview-chart-wrap">
-      <div className="preview-chart-heading">
-        <span>Sales overview</span>
-        <span>Last 7 days <ChevronDown /></span>
+function DashboardPreview({
+  salesTotal,
+  expensesTotal,
+}: {
+  salesTotal: number;
+  expensesTotal: number;
+}) {
+  return (
+    <div className="dashboard-preview">
+      <div className="preview-top">
+        <div className="preview-brand">
+          <BrandMark />
+          <span>BizStarter</span>
+        </div>
+        <span className="preview-window-dots">
+          <i />
+          <i />
+          <i />
+        </span>
       </div>
-      <MiniChart compact />
+
+      <div className="preview-greeting">
+        <span>BUSINESS OVERVIEW</span>
+        <strong>Your business, at a glance</strong>
+      </div>
+
+      <div className="preview-metrics">
+        <PreviewMetric
+          label="Total sales"
+          value={formatMoney(salesTotal)}
+          icon={<ArrowUpRight />}
+          variant="green"
+        />
+        <PreviewMetric
+          label="Expenses"
+          value={formatMoney(expensesTotal)}
+          icon={<ArrowDownLeft />}
+          variant="orange"
+        />
+      </div>
+
+      <div className="preview-chart-wrap">
+        <div className="preview-chart-heading">
+          <span>Sales overview</span>
+          <span>
+            Illustrative chart <ChevronDown />
+          </span>
+        </div>
+        <MiniChart compact />
+      </div>
+
+      <div className="preview-latest">
+        <span>Example transaction preview</span>
+        <span className="preview-order">
+          <span className="order-dot" /> Example cake order{" "}
+          <strong>+₦185,000</strong>
+        </span>
+      </div>
     </div>
-    <div className="preview-latest">
-      <span>Recent activity</span>
-      <span className="preview-order">
-        <span className="order-dot" /> Custom cake order <strong>+₦185,000</strong>
-      </span>
-    </div>
-  </div>;
+  );
 }
 
-function PreviewMetric({ label, value, icon, variant }: { label: string; value: string; icon: ReactNode; variant: string }) {
-  return <div className="preview-metric">
-    <span className={`metric-icon ${variant}`}>{icon}</span>
-    <span>{label}</span>
-    <strong>{value}</strong>
-    <small>Sample figure</small>
-  </div>;
-}
-
-function PageHeading({ eyebrow, title, description, action }: { eyebrow: string; title: string; description: string; action?: ReactNode }) {
-  return <div className="page-heading">
-    <div>
-      <span className="eyebrow">{eyebrow}</span>
-      <h1>{title}</h1>
-      <p>{description}</p>
+function PreviewMetric({
+  label,
+  value,
+  icon,
+  variant,
+}: {
+  label: string;
+  value: string;
+  icon: ReactNode;
+  variant: string;
+}) {
+  return (
+    <div className="preview-metric">
+      <span className={`metric-icon ${variant}`}>{icon}</span>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>Illustrative preview</small>
     </div>
-    {action}
-  </div>;
+  );
 }
 
-function DashboardPage({ salesTotal, expensesTotal, debtsTotal, transactions, onAddSale, onAddExpense, onNavigate }: {
+function PageHeading({
+  eyebrow,
+  title,
+  description,
+  action,
+}: {
+  eyebrow: string;
+  title: string;
+  description: string;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="page-heading">
+      <div>
+        <span className="eyebrow">{eyebrow}</span>
+        <h1>{title}</h1>
+        <p>{description}</p>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function DashboardPage({
+  salesTotal,
+  expensesTotal,
+  debtsTotal,
+  transactions,
+  onAddSale,
+  onAddExpense,
+  onNavigate,
+}: {
   salesTotal: number;
   expensesTotal: number;
   debtsTotal: number;
@@ -846,163 +977,278 @@ function DashboardPage({ salesTotal, expensesTotal, debtsTotal, transactions, on
 }) {
   const recent = transactions.slice(0, 5);
 
-  return <>
-    <PageHeading
-      eyebrow="MONDAY, 15 JUNE 2026"
-      title="Good morning, business owner"
-      description="Here’s what’s happening in your sample workspace."
-      action={
-        <div className="heading-actions">
-          <Button variant="outline" onClick={onAddExpense}><Plus /> Add expense</Button>
-          <Button onClick={onAddSale}><Plus /> Add sale</Button>
+  return (
+    <>
+      <PageHeading
+        eyebrow="BUSINESS OVERVIEW"
+        title="Welcome to your business"
+        description="Here’s an overview of your recorded business activity."
+        action={
+          <div className="heading-actions">
+            <Button variant="outline" onClick={onAddExpense}>
+              <Plus /> Add expense
+            </Button>
+            <Button onClick={onAddSale}>
+              <Plus /> Add sale
+            </Button>
+          </div>
+        }
+      />
+
+      <div className="sample-notice">
+        <Sparkles />
+        <span>
+          <strong>Data storage:</strong> Your sales, expenses, and customer
+          balances are saved in this browser on this device. They are not yet
+          synced across devices.
+        </span>
+      </div>
+
+      <section className="metric-grid" aria-label="Business overview">
+        <MetricCard
+          title="Total sales"
+          amount={salesTotal}
+          icon={<ShoppingBag />}
+          detail="Across your recorded sales"
+          color="green"
+        />
+        <MetricCard
+          title="Total expenses"
+          amount={expensesTotal}
+          icon={<Wallet />}
+          detail="Across your recorded expenses"
+          color="orange"
+        />
+        <MetricCard
+          title="Estimated profit"
+          amount={salesTotal - expensesTotal}
+          icon={<TrendingUp />}
+          detail="Sales less recorded expenses"
+          color="blue"
+        />
+        <MetricCard
+          title="Customer debts"
+          amount={debtsTotal}
+          icon={<HandCoins />}
+          detail="Outstanding customer balances"
+          color="rose"
+        />
+      </section>
+
+      <section className="dashboard-grid">
+        <div className="content-panel chart-panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Sales overview</h2>
+              <p>
+                Illustrative chart; recorded sales totals are shown above.
+              </p>
+            </div>
+            <Button variant="outline" size="sm">
+              Chart preview <ChevronDown />
+            </Button>
+          </div>
+          <MiniChart />
         </div>
-      }
-    />
 
-    <div className="sample-notice">
-      <Sparkles />
-      <span><strong>Sample workspace</strong> — figures shown are for demonstration and aren’t your actual business records.</span>
-    </div>
+        <div className="content-panel quick-panel">
+          <div className="panel-heading">
+            <div>
+              <h2>Quick actions</h2>
+              <p>Keep your records up to date</p>
+            </div>
+          </div>
 
-    <section className="metric-grid" aria-label="Business overview">
-      <MetricCard title="Total sales" amount={salesTotal} icon={<ShoppingBag />} detail="Across recorded sample sales" color="green" />
-      <MetricCard title="Total expenses" amount={expensesTotal} icon={<Wallet />} detail="Across recorded sample expenses" color="orange" />
-      <MetricCard title="Estimated profit" amount={salesTotal - expensesTotal} icon={<TrendingUp />} detail="Sales less recorded expenses" color="blue" />
-      <MetricCard title="Customer debts" amount={debtsTotal} icon={<HandCoins />} detail="Outstanding sample balances" color="rose" />
-    </section>
+          <button className="quick-action" onClick={onAddSale}>
+            <span className="quick-icon mint">
+              <ShoppingBag />
+            </span>
+            <span>
+              <strong>Record a sale</strong>
+              <small>Add a completed order</small>
+            </span>
+            <ArrowRight />
+          </button>
 
-    <section className="dashboard-grid">
-      <div className="content-panel chart-panel">
+          <button className="quick-action" onClick={onAddExpense}>
+            <span className="quick-icon peach">
+              <Wallet />
+            </span>
+            <span>
+              <strong>Record an expense</strong>
+              <small>Log a business cost</small>
+            </span>
+            <ArrowRight />
+          </button>
+
+          <button className="quick-action" onClick={() => onNavigate("debts")}>
+            <span className="quick-icon lilac">
+              <HandCoins />
+            </span>
+            <span>
+              <strong>Review customer debts</strong>
+              <small>Check balances and payments</small>
+            </span>
+            <ArrowRight />
+          </button>
+        </div>
+      </section>
+
+      <section className="content-panel transaction-panel">
         <div className="panel-heading">
           <div>
-            <h2>Sales overview</h2>
-            <p>Sample activity over the last 7 days</p>
+            <h2>Recent transactions</h2>
+            <p>Your latest recorded business activity</p>
           </div>
-          <Button variant="outline" size="sm">This week <ChevronDown /></Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => onNavigate("sales")}
+          >
+            See all <ArrowRight />
+          </Button>
         </div>
-        <MiniChart />
-      </div>
 
-      <div className="content-panel quick-panel">
-        <div className="panel-heading">
-          <div>
-            <h2>Quick actions</h2>
-            <p>Keep your records up to date</p>
-          </div>
-        </div>
-        <button className="quick-action" onClick={onAddSale}>
-          <span className="quick-icon mint"><ShoppingBag /></span>
-          <span><strong>Record a sale</strong><small>Add a completed order</small></span>
-          <ArrowRight />
-        </button>
-        <button className="quick-action" onClick={onAddExpense}>
-          <span className="quick-icon peach"><Wallet /></span>
-          <span><strong>Record an expense</strong><small>Log a business cost</small></span>
-          <ArrowRight />
-        </button>
-        <button className="quick-action" onClick={() => onNavigate("debts")}>
-          <span className="quick-icon lilac"><HandCoins /></span>
-          <span><strong>Review customer debts</strong><small>Check balances and payments</small></span>
-          <ArrowRight />
-        </button>
-      </div>
-    </section>
-
-    <section className="content-panel transaction-panel">
-      <div className="panel-heading">
-        <div>
-          <h2>Recent transactions</h2>
-          <p>Your latest sample business activity</p>
-        </div>
-        <Button variant="ghost" size="sm" onClick={() => onNavigate("sales")}>See all <ArrowRight /></Button>
-      </div>
-      <TransactionTable transactions={recent} />
-    </section>
-  </>;
+        <TransactionTable transactions={recent} />
+      </section>
+    </>
+  );
 }
 
-function MetricCard({ title, amount, icon, detail, color }: {
+function MetricCard({
+  title,
+  amount,
+  icon,
+  detail,
+  color,
+}: {
   title: string;
   amount: number;
   icon: ReactNode;
   detail: string;
   color: string;
 }) {
-  return <article className="metric-card">
-    <div className="metric-card-top">
-      <span>{title}</span>
-      <span className={`metric-card-icon ${color}`}>{icon}</span>
-    </div>
-    <strong className="metric-value">{formatMoney(amount)}</strong>
-    <span className="metric-detail">{detail}</span>
-  </article>;
+  return (
+    <article className="metric-card">
+      <div className="metric-card-top">
+        <span>{title}</span>
+        <span className={`metric-card-icon ${color}`}>{icon}</span>
+      </div>
+      <strong className="metric-value">{formatMoney(amount)}</strong>
+      <span className="metric-detail">{detail}</span>
+    </article>
+  );
 }
 
 function MiniChart({ compact = false }: { compact?: boolean }) {
-  return <div className={`mini-chart ${compact ? "compact" : ""}`} aria-label="Sample sales chart, Monday to Sunday">
-    <div className="chart-scale">
-      <span>₦200k</span>
-      <span>₦150k</span>
-      <span>₦100k</span>
-      <span>₦50k</span>
-    </div>
-    <div className="chart-plot">
-      <div className="chart-guides"><i /><i /><i /><i /></div>
-      <div className="chart-columns">
-        {chartData.map((item, index) => (
-          <div className="chart-day" key={item.label}>
-            <div className="chart-bar-track"><span className={`chart-bar bar-${index + 1}`} /></div>
-            <span className="chart-day-label">{item.label}</span>
-          </div>
-        ))}
+  return (
+    <div
+      className={`mini-chart ${compact ? "compact" : ""}`}
+      aria-label="Illustrative sales chart, Monday to Sunday"
+    >
+      <div className="chart-scale">
+        <span>₦200k</span>
+        <span>₦150k</span>
+        <span>₦100k</span>
+        <span>₦50k</span>
+      </div>
+
+      <div className="chart-plot">
+        <div className="chart-guides">
+          <i />
+          <i />
+          <i />
+          <i />
+        </div>
+
+        <div className="chart-columns">
+          {chartData.map((item, index) => (
+            <div className="chart-day" key={item.label}>
+              <div className="chart-bar-track">
+                <span className={`chart-bar bar-${index + 1}`} />
+              </div>
+              <span className="chart-day-label">{item.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  </div>;
+  );
 }
 
-function TransactionTable({ transactions }: { transactions: Transaction[] }) {
+function TransactionTable({
+  transactions,
+}: {
+  transactions: Transaction[];
+}) {
   if (!transactions.length) {
-    return <EmptyState icon={<FileText />} title="No transactions yet" detail="New activity will appear here once it’s recorded." />;
+    return (
+      <EmptyState
+        icon={<FileText />}
+        title="No transactions yet"
+        detail="Your sales and expenses will appear here after you record them."
+      />
+    );
   }
 
-  return <div className="table-scroll">
-    <table className="data-table">
-      <thead>
-        <tr>
-          <th>Transaction</th>
-          <th>Category</th>
-          <th>Date</th>
-          <th>Amount</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {transactions.map((item) => (
-          <tr key={item.id}>
-            <td>
-              <span className={`transaction-icon ${item.kind}`}>
-                {item.kind === "sale" ? <ArrowDownLeft /> : <ArrowUpRight />}
-              </span>
-              <strong>{item.description}</strong>
-            </td>
-            <td>{item.category}</td>
-            <td>{formatDate(item.date)}</td>
-            <td className={item.kind === "sale" ? "amount-positive" : "amount-negative"}>
-              {item.kind === "sale" ? "+" : "−"}{formatMoney(item.amount)}
-            </td>
-            <td>
-              <span className={`status-pill ${item.kind}`}>
-                {item.kind === "sale" ? "Sale" : "Expense"}
-              </span>
-            </td>
+  return (
+    <div className="table-scroll">
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Transaction</th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Status</th>
           </tr>
-        ))}
-      </tbody>
-    </table>
-  </div>;
+        </thead>
+
+        <tbody>
+          {transactions.map((item) => (
+            <tr key={item.id}>
+              <td>
+                <span className={`transaction-icon ${item.kind}`}>
+                  {item.kind === "sale" ? (
+                    <ArrowDownLeft />
+                  ) : (
+                    <ArrowUpRight />
+                  )}
+                </span>
+                <strong>{item.description}</strong>
+              </td>
+              <td>{item.category}</td>
+              <td>{formatDate(item.date)}</td>
+              <td
+                className={
+                  item.kind === "sale" ? "amount-positive" : "amount-negative"
+                }
+              >
+                {item.kind === "sale" ? "+" : "−"}
+                {formatMoney(item.amount)}
+              </td>
+              <td>
+                <span className={`status-pill ${item.kind}`}>
+                  {item.kind === "sale" ? "Sale" : "Expense"}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
-function TransactionsPage({ kind, transactions, query, onQuery, categoryFilter, onCategory, onAdd }: {
+function TransactionsPage({
+  kind,
+  transactions,
+  query,
+  onQuery,
+  categoryFilter,
+  onCategory,
+  onAdd,
+}: {
   kind: TransactionKind;
   transactions: Transaction[];
   query: string;
@@ -1013,312 +1259,173 @@ function TransactionsPage({ kind, transactions, query, onQuery, categoryFilter, 
 }) {
   const isSale = kind === "sale";
 
-  return <>
-    <PageHeading
-      eyebrow={isSale ? "MONEY COMING IN" : "MONEY GOING OUT"}
-      title={isSale ? "Sales" : "Expenses"}
-      description={isSale ? "A record of your sample customer orders and sales." : "A clear view of your sample business spending."}
-      action={<Button onClick={onAdd}><Plus /> Add {isSale ? "sale" : "expense"}</Button>}
-    />
+  return (
+    <>
+      <PageHeading
+        eyebrow={isSale ? "MONEY COMING IN" : "MONEY GOING OUT"}
+        title={isSale ? "Sales" : "Expenses"}
+        description={
+          isSale
+            ? "Review and manage your recorded sales."
+            : "Review and manage your recorded business expenses."
+        }
+        action={
+          <Button onClick={onAdd}>
+            <Plus /> Add {isSale ? "sale" : "expense"}
+          </Button>
+        }
+      />
 
-    <div className="sample-notice">
-      <Sparkles />
-      <span><strong>Sample workspace</strong> — these entries are examples, not actual business records.</span>
-    </div>
+      <div className="sample-notice">
+        <Sparkles />
+        <span>
+          <strong>Data storage:</strong> These records are saved in this browser
+          on this device and are not yet synced across devices.
+        </span>
+      </div>
 
-    <div className="content-panel listing-panel">
-      <div className="listing-toolbar">
-        <div className="search-control">
-          <Search />
-          <input
-            aria-label="Search transactions"
-            placeholder={`Search ${isSale ? "sales" : "expenses"}`}
-            value={query}
-            onChange={(event) => onQuery(event.target.value)}
+      <div className="content-panel listing-panel">
+        <div className="listing-toolbar">
+          <div className="search-control">
+            <Search />
+            <input
+              aria-label="Search transactions"
+              placeholder={`Search ${isSale ? "sales" : "expenses"}`}
+              value={query}
+              onChange={(event) => onQuery(event.target.value)}
+            />
+          </div>
+
+          <label className="category-filter">
+            <span className="sr-only">Filter by category</span>
+            <select
+              value={categoryFilter}
+              onChange={(event) => onCategory(event.target.value)}
+            >
+              <option>All categories</option>
+              {(isSale ? ["Product sales"] : expenseCategories).map(
+                (category) => (
+                  <option key={category}>{category}</option>
+                ),
+              )}
+            </select>
+            <ChevronDown />
+          </label>
+
+          <Button variant="outline" size="sm">
+            <Download /> Export
+          </Button>
+        </div>
+
+        {transactions.length ? (
+          <TransactionTable transactions={transactions} />
+        ) : (
+          <EmptyState
+            icon={isSale ? <ShoppingBag /> : <Wallet />}
+            title={
+              query || categoryFilter !== "All categories"
+                ? "No matching records"
+                : `No ${isSale ? "sales" : "expenses"} yet`
+            }
+            detail={
+              query || categoryFilter !== "All categories"
+                ? "Try a different search or category."
+                : `Add your first ${isSale ? "sale" : "expense"} to see it listed here.`
+            }
           />
-        </div>
-
-        <label className="category-filter">
-          <span className="sr-only">Filter by category</span>
-          <select value={categoryFilter} onChange={(event) => onCategory(event.target.value)}>
-            <option>All categories</option>
-            {(isSale ? ["Product sales"] : expenseCategories).map((category) => (
-              <option key={category}>{category}</option>
-            ))}
-          </select>
-          <ChevronDown />
-        </label>
-
-        <Button variant="outline" size="sm"><Download /> Export</Button>
+        )}
       </div>
-
-      {transactions.length ? (
-        <TransactionTable transactions={transactions} />
-      ) : (
-        <EmptyState
-          icon={isSale ? <ShoppingBag /> : <Wallet />}
-          title={query || categoryFilter !== "All categories" ? "No matching records" : `No ${isSale ? "sales" : "expenses"} yet`}
-          detail={query || categoryFilter !== "All categories" ? "Try a different search or category." : `Add your first ${isSale ? "sale" : "expense"} to see it listed here.`}
-        />
-      )}
-    </div>
-  </>;
+    </>
+  );
 }
 
-function ProfitPage({ salesTotal, expensesTotal }: { salesTotal: number; expensesTotal: number }) {
-  const profit = salesTotal - expensesTotal;
-
-  return <>
-    <PageHeading
-      eyebrow="A SIMPLE SNAPSHOT"
-      title="Profit overview"
-      description="Understand the difference between recorded sales and operating expenses."
-    />
-
-    <div className="sample-notice">
-      <Sparkles />
-      <span><strong>Estimated only</strong> — this is not a full accounting of business profit.</span>
-    </div>
-
-    <div className="profit-layout">
-      <div className="content-panel profit-summary">
-        <span className="profit-summary-label">Estimated profit</span>
-        <strong>{formatMoney(profit)}</strong>
-        <span className="estimate-tag"><TrendingUp /> Sales less recorded expenses</span>
-        <div className="profit-divider" />
-        <div className="profit-line">
-          <span><i className="legend-dot sales-dot" /> Total sales</span>
-          <strong>{formatMoney(salesTotal)}</strong>
-        </div>
-        <div className="profit-line">
-          <span><i className="legend-dot expenses-dot" /> Total recorded expenses</span>
-          <strong>− {formatMoney(expensesTotal)}</strong>
-        </div>
-      </div>
-
-      <aside className="profit-note">
-        <span className="note-bulb">i</span>
-        <div>
-          <h2>A useful estimate, not the whole picture.</h2>
-          <p>This figure subtracts recorded operating expenses from sales. A true business profit calculation may also need cost of goods sold, inventory changes, taxes, loan repayments, and other costs.</p>
-          <p>Use it as a simple overview—not as a replacement for accounting advice or formal financial statements.</p>
-        </div>
-      </aside>
-    </div>
-
-    <div className="content-panel profit-breakdown">
-      <div className="panel-heading">
-        <div>
-          <h2>How the estimate adds up</h2>
-          <p>Based on entries in this sample workspace</p>
-        </div>
-      </div>
-      <div className="breakdown-row"><span>Sales recorded</span><strong>{formatMoney(salesTotal)}</strong></div>
-      <div className="breakdown-row"><span>Expenses recorded</span><strong>− {formatMoney(expensesTotal)}</strong></div>
-      <div className="breakdown-row total"><span>Estimated profit</span><strong>{formatMoney(profit)}</strong></div>
-    </div>
-  </>;
-}
-
-function DebtsPage({ debts, onPayment }: { debts: CustomerDebt[]; onPayment: () => void }) {
-  const total = debts.reduce((sum, debt) => sum + debt.amountOwed - debt.amountPaid, 0);
-
-  return <>
-    <PageHeading
-      eyebrow="CUSTOMER CREDIT"
-      title="Customer debts"
-      description="Keep credit sales and customer payments easy to follow."
-      action={<Button onClick={onPayment}><Plus /> Record a payment</Button>}
-    />
-
-    <div className="sample-notice">
-      <Sparkles />
-      <span><strong>Sample workspace</strong> — example customer names and balances are for demonstration only.</span>
-    </div>
-
-    <div className="debt-summary">
-      <span className="debt-summary-icon"><HandCoins /></span>
-      <div>
-        <span>Outstanding sample balance</span>
-        <strong>{formatMoney(total)}</strong>
-      </div>
-      <span className="debt-summary-count">
-        {debts.filter((debt) => debt.amountOwed > debt.amountPaid).length} open balances
-      </span>
-    </div>
-
-    <div className="content-panel debt-list-panel">
-      <div className="panel-heading">
-        <div>
-          <h2>Customer balances</h2>
-          <p>Credit sales are tracked separately from business expenses.</p>
-        </div>
-      </div>
-
-      <div className="table-scroll">
-        <table className="data-table debt-table">
-          <thead>
-            <tr>
-              <th>Customer</th>
-              <th>Original amount</th>
-              <th>Amount paid</th>
-              <th>Outstanding</th>
-              <th>Due date</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {debts.map((debt) => {
-              const balance = debt.amountOwed - debt.amountPaid;
-
-              return <tr key={debt.id}>
-                <td>
-                  <span className="customer-avatar">{debt.name.slice(-1)}</span>
-                  <strong>{debt.name}</strong>
-                </td>
-                <td>{formatMoney(debt.amountOwed)}</td>
-                <td>{formatMoney(debt.amountPaid)}</td>
-                <td className="debt-balance">{formatMoney(balance)}</td>
-                <td>{formatDate(debt.dueDate)}</td>
-                <td>
-                  <button className="icon-button" aria-label={`More actions for ${debt.name}`}>
-                    <MoreHorizontal />
-                  </button>
-                </td>
-              </tr>;
-            })}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </>;
-}
-
-function ReportsPage({ sales, expenses, salesTotal, expensesTotal }: {
-  sales: Transaction[];
-  expenses: Transaction[];
+function ProfitPage({
+  salesTotal,
+  expensesTotal,
+}: {
   salesTotal: number;
   expensesTotal: number;
 }) {
-  const dailySales = sales
-    .filter((item) => item.date === new Date().toISOString().slice(0, 10))
-    .reduce((sum, item) => sum + item.amount, 0);
+  const profit = salesTotal - expensesTotal;
 
-  const dailyExpenses = expenses
-    .filter((item) => item.date === new Date().toISOString().slice(0, 10))
-    .reduce((sum, item) => sum + item.amount, 0);
+  return (
+    <>
+      <PageHeading
+        eyebrow="A SIMPLE SNAPSHOT"
+        title="Profit overview"
+        description="Understand the difference between recorded sales and operating expenses."
+      />
 
-  return <>
-    <PageHeading
-      eyebrow="BUSINESS PERFORMANCE"
-      title="Reports"
-      description="Review daily and overall activity in your sample workspace."
-      action={<Button variant="outline"><Download /> Export report</Button>}
-    />
+      <div className="sample-notice">
+        <Sparkles />
+        <span>
+          <strong>Estimated only:</strong> This is a basic calculation, not a
+          complete accounting of business profit.
+        </span>
+      </div>
 
-    <div className="sample-notice">
-      <Sparkles />
-      <span><strong>Sample report</strong> — example figures are for preview only and are not financial results.</span>
-    </div>
+      <div className="profit-layout">
+        <div className="content-panel profit-summary">
+          <span className="profit-summary-label">Estimated profit</span>
+          <strong>{formatMoney(profit)}</strong>
+          <span className="estimate-tag">
+            <TrendingUp /> Sales less recorded expenses
+          </span>
+          <div className="profit-divider" />
 
-    <div className="report-summary-grid">
-      <MetricCard title="Today's sales" amount={dailySales} icon={<ShoppingBag />} detail="Recorded today" color="green" />
-      <MetricCard title="Today's expenses" amount={dailyExpenses} icon={<Wallet />} detail="Recorded today" color="orange" />
-      <MetricCard title="Sales total" amount={salesTotal} icon={<BarChart3 />} detail="All sample entries" color="blue" />
-      <MetricCard title="Expenses total" amount={expensesTotal} icon={<CircleDollarSign />} detail="All sample entries" color="rose" />
-    </div>
+          <div className="profit-line">
+            <span>
+              <i className="legend-dot sales-dot" /> Total sales
+            </span>
+            <strong>{formatMoney(salesTotal)}</strong>
+          </div>
 
-     <div className="content-panel report-period">
-      <div className="panel-heading">
-        <div>
-          <h2>Daily summary</h2>
-          <p>Today, {formatDate(new Date().toISOString().slice(0, 10))}</p>
+          <div className="profit-line">
+            <span>
+              <i className="legend-dot expenses-dot" /> Total recorded expenses
+            </span>
+            <strong>− {formatMoney(expensesTotal)}</strong>
+          </div>
         </div>
-        <span className="period-chip">Today <ChevronDown /></span>
-      </div>
-      <div className="report-line">
-        <span>Sales</span>
-        <strong className="amount-positive">+{formatMoney(dailySales)}</strong>
-      </div>
-      <div className="report-line">
-        <span>Expenses</span>
-        <strong className="amount-negative">−{formatMoney(dailyExpenses)}</strong>
-      </div>
-      <div className="report-line report-total">
-        <span>Estimated difference</span>
-        <strong>{formatMoney(dailySales - dailyExpenses)}</strong>
-      </div>
-    </div>
 
-    <div className="content-panel report-period">
-      <div className="panel-heading">
-        <div>
-          <h2>Monthly summary</h2>
-          <p>Current month sample activity</p>
+        <aside className="profit-note">
+          <span className="note-bulb">i</span>
+          <div>
+            <h2>A useful estimate, not the whole picture.</h2>
+            <p>
+              This figure subtracts recorded operating expenses from sales. A
+              complete business profit calculation may also need cost of goods
+              sold, inventory changes, taxes, loan repayments, and other costs.
+            </p>
+            <p>
+              Use it as a simple overview—not as a replacement for accounting
+              advice or formal financial statements.
+            </p>
+          </div>
+        </aside>
+      </div>
+
+      <div className="content-panel profit-breakdown">
+        <div className="panel-heading">
+          <div>
+            <h2>How the estimate adds up</h2>
+            <p>Based on your recorded sales and expenses</p>
+          </div>
         </div>
-        <span className="period-chip">This month <ChevronDown /></span>
-      </div>
-      <div className="report-line">
-        <span>Sales</span>
-        <strong className="amount-positive">+{formatMoney(salesTotal)}</strong>
-      </div>
-      <div className="report-line">
-        <span>Expenses</span>
-        <strong className="amount-negative">−{formatMoney(expensesTotal)}</strong>
-      </div>
-      <div className="report-line report-total">
-        <span>Estimated difference</span>
-        <strong>{formatMoney(salesTotal - expensesTotal)}</strong>
-      </div>
-    </div>
-  </>;
-}
 
-function SettingsPage() {
-  return <>
-    <PageHeading
-      eyebrow="YOUR WORKSPACE"
-      title="Settings"
-      description="Basic preferences for your BizStarter workspace."
-    />
+        <div className="breakdown-row">
+          <span>Sales recorded</span>
+          <strong>{formatMoney(salesTotal)}</strong>
+        </div>
 
-    <div className="content-panel settings-panel">
-      <div className="settings-row">
-        <span className="settings-icon"><LayoutDashboard /></span>
-        <span><strong>Business profile</strong><small>Workspace name and business details</small></span>
-        <Button variant="outline" size="sm">Edit details</Button>
+        <div className="breakdown-row">
+          <span>Expenses recorded</span>
+          <strong>− {formatMoney(expensesTotal)}</strong>
+        </div>
+
+        <div className="breakdown-row total">
+          <span>Estimated profit</span>
+          <strong>{formatMoney(profit)}</strong>
+        </div>
       </div>
-
-      <div className="settings-row">
-        <span className="settings-icon"><CircleDollarSign /></span>
-        <span><strong>Currency</strong><small>Nigerian naira (₦)</small></span>
-        <span className="settings-value">NGN</span>
-      </div>
-
-      <div className="settings-row">
-        <span className="settings-icon"><FileText /></span>
-        <span><strong>Sample data</strong><small>Entries in this preview aren’t permanently saved</small></span>
-        <span className="sample-badge compact-badge"><span /> Preview</span>
-      </div>
-    </div>
-
-    <div className="settings-credit">
-      <span className="brand-mark small"><span /><span /><span /></span>
-      <span>BizStarter <small>Created by Ayanfe Innovation Labs Limited.</small></span>
-    </div>
-  </>;
-}
-
-function EmptyState({ icon, title, detail }: {
-  icon: ReactNode;
-  title: string;
-  detail: string;
-}) {
-  return <div className="empty-state">
-    <span className="empty-icon">{icon}</span>
-    <strong>{title}</strong>
-    <p>{detail}</p>
-  </div>;
-}
-  
-         
+   
