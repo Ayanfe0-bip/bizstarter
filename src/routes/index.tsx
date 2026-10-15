@@ -1428,340 +1428,140 @@ function ProfitPage({
 
 function DebtsPage({
   debts,
-  onAddDebt,
-  onPayDebt,
+  onPayment,
 }: {
-  debts: Debt[];
-  onAddDebt: (debt: Debt) => void;
-  onPayDebt: (id: string, amount: number) => void;
+  debts: CustomerDebt[];
+  onPayment: () => void;
 }) {
-  const [showForm, setShowForm] = useState(false);
-  const [customerName, setCustomerName] = useState("");
-  const [description, setDescription] = useState("");
-  const [amount, setAmount] = useState("");
-  const [dueDate, setDueDate] = useState("");
+  const outstandingDebts = debts.filter(
+    (debt) => debt.amountOwed > debt.amountPaid,
+  );
 
-  const [selectedDebt, setSelectedDebt] = useState<Debt | null>(null);
-  const [paymentAmount, setPaymentAmount] = useState("");
-
-  const outstandingDebts = debts.filter((debt) => debt.balance > 0);
   const totalOutstanding = outstandingDebts.reduce(
-    (total, debt) => total + debt.balance,
+    (total, debt) => total + debt.amountOwed - debt.amountPaid,
     0,
   );
 
-  function handleAddDebt(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const numericAmount = Number(amount);
-
-    if (!customerName.trim() || !description.trim() || numericAmount <= 0) {
-      return;
-    }
-
-    const newDebt: Debt = {
-      id: crypto.randomUUID(),
-      customerName: customerName.trim(),
-      description: description.trim(),
-      amount: numericAmount,
-      balance: numericAmount,
-      dueDate,
-      createdAt: new Date().toISOString(),
-    };
-
-    onAddDebt(newDebt);
-
-    setCustomerName("");
-    setDescription("");
-    setAmount("");
-    setDueDate("");
-    setShowForm(false);
-  }
-
-  function handlePayment(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (!selectedDebt) return;
-
-    const numericPayment = Number(paymentAmount);
-
-    if (
-      numericPayment <= 0 ||
-      numericPayment > selectedDebt.balance
-    ) {
-      return;
-    }
-
-    onPayDebt(selectedDebt.id, numericPayment);
-    setSelectedDebt(null);
-    setPaymentAmount("");
-  }
+  const totalPaid = debts.reduce(
+    (total, debt) => total + debt.amountPaid,
+    0,
+  );
 
   return (
     <div className="page-content">
-      <PageHeading
-        eyebrow="CUSTOMER ACCOUNTS"
-        title="Customer debts"
-        description="Keep track of outstanding customer balances and payments."
-        action={
-          <button
-            className="primary-button"
-            type="button"
-            onClick={() => setShowForm(true)}
-          >
-            <Plus size={17} />
-            Record debt
-          </button>
-        }
-      />
-
-      <div className="notice-banner">
-        <Info size={18} />
-        <span>
-          <strong>BizStarter</strong> — customer balances you record here
-          are saved in this browser on this device. They are not synced
-          across devices yet.
-        </span>
-      </div>
-
-      <div className="metrics-grid">
-        <MetricCard
-          label="Outstanding balance"
-          value={formatMoney(totalOutstanding)}
-          detail={`${outstandingDebts.length} outstanding account${outstandingDebts.length === 1 ? "" : "s"}`}
-          icon={<Wallet size={19} />}
-          tone="amber"
-        />
-
-        <MetricCard
-          label="Total recorded debts"
-          value={formatMoney(
-            debts.reduce((total, debt) => total + debt.amount, 0),
-          )}
-          detail="Total value of debts recorded"
-          icon={<FileText size={19} />}
-          tone="blue"
-        />
-
-        <MetricCard
-          label="Payments received"
-          value={formatMoney(
-            debts.reduce(
-              (total, debt) => total + (debt.amount - debt.balance),
-              0,
-            ),
-          )}
-          detail="Payments recorded against debts"
-          icon={<CheckCircle2 size={19} />}
-          tone="green"
-        />
-      </div>
-
       <div className="content-panel">
         <div className="panel-heading">
           <div>
-            <h2>Customer balances</h2>
-            <p>Review outstanding amounts and record payments.</p>
+            <h2>Customer debts</h2>
+            <p>
+              Track money customers owe your business and payments received.
+            </p>
+          </div>
+
+          <button
+            className="primary-button"
+            type="button"
+            onClick={onPayment}
+            disabled={outstandingDebts.length === 0}
+          >
+            <HandCoins size={17} />
+            Record payment
+          </button>
+        </div>
+
+        <div className="metrics-grid">
+          <div className="metric-card">
+            <span>Outstanding balance</span>
+            <h3>{formatMoney(totalOutstanding)}</h3>
+            <p>{outstandingDebts.length} unpaid account(s)</p>
+          </div>
+
+          <div className="metric-card">
+            <span>Total payments received</span>
+            <h3>{formatMoney(totalPaid)}</h3>
+            <p>Payments recorded against debts</p>
+          </div>
+
+          <div className="metric-card">
+            <span>Total customer accounts</span>
+            <h3>{debts.length}</h3>
+            <p>Recorded debt accounts</p>
           </div>
         </div>
 
         {debts.length === 0 ? (
-          <EmptyState
-            icon={<Wallet size={24} />}
-            title="No customer debts recorded"
-            description="When a customer owes your business money, record the amount here to keep track of it."
-            action={
-              <button
-                className="primary-button"
-                type="button"
-                onClick={() => setShowForm(true)}
-              >
-                <Plus size={17} />
-                Record first debt
-              </button>
-            }
-          />
+          <div className="empty-state">
+            <HandCoins size={30} />
+            <h3>No customer debts yet</h3>
+            <p>
+              Customer debts will appear here when you add debt-recording
+              functionality.
+            </p>
+          </div>
         ) : (
           <div className="table-scroll">
             <table className="data-table">
               <thead>
                 <tr>
                   <th>Customer</th>
-                  <th>Description</th>
-                  <th>Original amount</th>
-                  <th>Balance</th>
+                  <th>Amount owed</th>
+                  <th>Amount paid</th>
+                  <th>Balance remaining</th>
                   <th>Due date</th>
                   <th>Status</th>
-                  <th>Action</th>
                 </tr>
               </thead>
 
               <tbody>
-                {debts.map((debt) => (
-                  <tr key={debt.id}>
-                    <td>
-                      <strong>{debt.customerName}</strong>
-                    </td>
-                    <td>{debt.description}</td>
-                    <td>{formatMoney(debt.amount)}</td>
-                    <td>
-                      <strong>{formatMoney(debt.balance)}</strong>
-                    </td>
-                    <td>
-                      {debt.dueDate
-                        ? formatDate(debt.dueDate)
-                        : "Not set"}
-                    </td>
-                    <td>
-                      <span
-                        className={`status-badge ${
-                          debt.balance <= 0 ? "status-paid" : "status-pending"
-                        }`}
-                      >
-                        {debt.balance <= 0 ? "Paid" : "Outstanding"}
-                      </span>
-                    </td>
-                    <td>
-                      {debt.balance > 0 ? (
-                        <button
-                          className="text-button"
-                          type="button"
-                          onClick={() => {
-                            setSelectedDebt(debt);
-                            setPaymentAmount("");
-                          }}
+                {debts.map((debt) => {
+                  const remaining = Math.max(
+                    0,
+                    debt.amountOwed - debt.amountPaid,
+                  );
+
+                  return (
+                    <tr key={debt.id}>
+                      <td>
+                        <strong>{debt.name}</strong>
+                      </td>
+
+                      <td>{formatMoney(debt.amountOwed)}</td>
+
+                      <td>{formatMoney(debt.amountPaid)}</td>
+
+                      <td>
+                        <strong>{formatMoney(remaining)}</strong>
+                      </td>
+
+                      <td>
+                        {debt.dueDate
+                          ? formatDate(debt.dueDate)
+                          : "Not set"}
+                      </td>
+
+                      <td>
+                        <span
+                          className={`status-badge ${
+                            remaining === 0
+                              ? "status-paid"
+                              : "status-pending"
+                          }`}
                         >
-                          Record payment
-                        </button>
-                      ) : (
-                        <span className="muted-text">Completed</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                          {remaining === 0 ? "Paid" : "Outstanding"}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
-
-      {showForm && (
-        <Dialog
-          title="Record customer debt"
-          description="Enter the customer details and the amount they owe your business."
-          onClose={() => setShowForm(false)}
-        >
-          <form className="form-stack" onSubmit={handleAddDebt}>
-            <label className="form-field">
-              <span>Customer name</span>
-              <input
-                value={customerName}
-                onChange={(event) => setCustomerName(event.target.value)}
-                placeholder="Enter customer name"
-                required
-              />
-            </label>
-
-            <label className="form-field">
-              <span>Description</span>
-              <input
-                value={description}
-                onChange={(event) => setDescription(event.target.value)}
-                placeholder="What is the debt for?"
-                required
-              />
-            </label>
-
-            <label className="form-field">
-              <span>Amount owed (₦)</span>
-              <input
-                type="number"
-                min="1"
-                step="0.01"
-                value={amount}
-                onChange={(event) => setAmount(event.target.value)}
-                placeholder="0.00"
-                required
-              />
-            </label>
-
-            <label className="form-field">
-              <span>Due date (optional)</span>
-              <input
-                type="date"
-                value={dueDate}
-                onChange={(event) => setDueDate(event.target.value)}
-              />
-            </label>
-
-            <div className="dialog-actions">
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={() => setShowForm(false)}
-              >
-                Cancel
-              </button>
-
-              <button className="primary-button" type="submit">
-                Save debt
-              </button>
-            </div>
-          </form>
-        </Dialog>
-      )}
-
-      {selectedDebt && (
-        <Dialog
-          title="Record customer payment"
-          description={`Outstanding balance: ${formatMoney(selectedDebt.balance)}`}
-          onClose={() => {
-            setSelectedDebt(null);
-            setPaymentAmount("");
-          }}
-        >
-          <form className="form-stack" onSubmit={handlePayment}>
-            <label className="form-field">
-              <span>Payment amount (₦)</span>
-              <input
-                type="number"
-                min="0.01"
-                max={selectedDebt.balance}
-                step="0.01"
-                value={paymentAmount}
-                onChange={(event) => setPaymentAmount(event.target.value)}
-                placeholder="Enter amount received"
-                required
-              />
-            </label>
-
-            <p className="field-help">
-              The payment cannot exceed the outstanding balance.
-            </p>
-
-            <div className="dialog-actions">
-              <button
-                className="secondary-button"
-                type="button"
-                onClick={() => {
-                  setSelectedDebt(null);
-                  setPaymentAmount("");
-                }}
-              >
-                Cancel
-              </button>
-
-              <button className="primary-button" type="submit">
-                Save payment
-              </button>
-            </div>
-          </form>
-        </Dialog>
-      )}
     </div>
   );
 }
-
+      
 function ReportsPage({
   transactions,
 }: {
