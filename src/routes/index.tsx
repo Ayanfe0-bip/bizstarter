@@ -286,7 +286,7 @@ const [page, setPage] = useState<WorkspacePage | "home">("home");
     } finally {
       setStorageLoaded(true);
     }
-  }, []);
+  }, [transactionsStorageKey, debtsStorageKey]);
 
   // Save records automatically after the initial restoration has completed.
   useEffect(() => {
@@ -294,12 +294,12 @@ const [page, setPage] = useState<WorkspacePage | "home">("home");
 
     try {
       window.localStorage.setItem(
-        TRANSACTIONS_STORAGE_KEY,
+        transactionstoragekey
         JSON.stringify(transactions),
       );
 
       window.localStorage.setItem(
-        DEBTS_STORAGE_KEY,
+        debitstoragekey
         JSON.stringify(debts),
       );
 
@@ -310,7 +310,13 @@ const [page, setPage] = useState<WorkspacePage | "home">("home");
         "Your latest changes could not be saved. Check available browser storage.",
       );
     }
-  }, [storageLoaded, transactions, debts]);
+  }, [
+  storageLoaded,
+  transactions,
+  debts,
+  transactionsStorageKey,
+  debtsStorageKey,
+]);
 
   const sales = useMemo(
     () => transactions.filter((transaction) => transaction.kind === "sale"),
