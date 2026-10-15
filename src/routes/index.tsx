@@ -239,7 +239,6 @@ function Index({ userId }: { userId: string }) {
 return <Index key={session.user.id} userId={session.user.id} />;
 }
 
-function Index({ userId }: { userId: string }) {
 const [page, setPage] = useState<WorkspacePage | "home">("home");
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
