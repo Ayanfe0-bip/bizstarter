@@ -1064,6 +1064,37 @@ setDialogKind(null);
   />
 )}
 
+{page === "inventory" && (
+  <section className="space-y-6">
+    <div>
+      <h1 className="text-2xl font-bold">Inventory</h1>
+      <p className="text-muted-foreground">
+        Manage your products, prices, and stock levels.
+      </p>
+    </div>
+
+    <div className="rounded-xl border p-6">
+      <div className="flex items-center gap-3">
+        <div className="rounded-lg bg-muted p-3">
+          <ClipboardList className="h-6 w-6" />
+        </div>
+
+        <div>
+          <h2 className="font-semibold">Product inventory</h2>
+          <p className="text-sm text-muted-foreground">
+            Your inventory workspace is ready for product management.
+          </p>
+        </div>
+      </div>
+
+      <p className="mt-4 text-sm text-muted-foreground">
+        Next, we'll connect this page to your Supabase products table so you
+        can add products, update prices, and track stock.
+      </p>
+    </div>
+  </section>
+)}
+
           {page === "reports" && (
   <ReportsPage transactions={transactions} />
 )}
