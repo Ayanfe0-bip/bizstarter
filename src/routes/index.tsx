@@ -1431,12 +1431,13 @@ function DashboardPage({
         }
       />
 
-      <div className="sample-notice">
+            <div className="sample-notice">
         <Sparkles />
         <span>
-          <strong>Data storage:</strong> Your sales, expenses, and customer
-          balances are saved in this browser on this device. They are not yet
-          synced across devices.
+          <strong>Data storage:</strong>{" "}
+          {cloudReady
+            ? "Your business records are connected to cloud sync for this account."
+            : "Your records are saved on this device while we check cloud synchronization."}
         </span>
       </div>
 
