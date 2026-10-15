@@ -7,6 +7,8 @@ import {
   receipt,
   BarChart3,
   Bell,
+  Building2,
+  CheckCircle2,
   ChevronDown,
   CircleDollarSign,
   ClipboardList,
