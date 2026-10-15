@@ -530,7 +530,7 @@ const [
 
         setTransactions(mergedTransactions);
         setDebts(mergedDebts);
-        setproducts(mergedproducts);
+        setProducts(mergedProducts);
         setCloudReady(true);
         setStorageError("");
       } catch (error) {
