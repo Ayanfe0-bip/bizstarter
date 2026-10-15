@@ -418,7 +418,7 @@ const [
 ]);
         if (transactionsResult.error) throw transactionsResult.error;
         if (debtsResult.error) throw debtsResult.error;
-
+         if (productsResult.error) throw productsResult.error;
         const validUuid = (id: string) =>
           /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
 
@@ -447,7 +447,17 @@ const [
             category: row.category,
             date: row.transaction_date,
           }));
-
+          const cloudProducts: Product[] =
+  (productsResult.data ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    sku: row.sku ?? "",
+    category: row.category ?? "",
+    costPrice: Number(row.cost_price),
+    sellingPrice: Number(row.selling_price),
+    quantityInStock: Number(row.quantity_in_stock),
+    lowStockThreshold: Number(row.low_stock_threshold),
+  }));
         const cloudDebts: CustomerDebt[] =
           (debtsResult.data ?? []).map((row) => ({
             id: row.id,
