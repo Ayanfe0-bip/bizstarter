@@ -1346,7 +1346,7 @@ function ProfitPage({
   const profit = salesTotal - expensesTotal;
 
   return (
-    <>
+        <div className="page-content">
       <PageHeading
         eyebrow="A SIMPLE SNAPSHOT"
         title="Profit overview"
