@@ -700,18 +700,16 @@ function Index() {
           )}
 
           {page === "settings" && <SettingsPage />}
-        </main>
-
-             <footer className="workspace-footer">
-        <span>
-          BizStarter{" "}
-          <span className="footer-separator">·</span>{" "}
-          Business workspace
-        </span>
-        <span>Created by Ayanfe Innovation Labs Limited</span>
-      </footer>
-    </div> 
-
+        </main>    <footer className="workspace-footer">
+      <span>
+        BizStarter{" "}
+        <span className="footer-separator">·</span>{" "}
+        Business workspace
+      </span>
+      <span>Created by Ayanfe Innovation Labs Limited</span>
+    </footer>
+  </div>
+      
       <Dialog
         open={dialogKind !== null}
         onOpenChange={(open) => {
