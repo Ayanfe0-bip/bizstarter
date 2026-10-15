@@ -248,8 +248,8 @@ const [cloudReady, setCloudReady] = useState(false);
 const [storageError, setStorageError] = useState("");
 
   const [dialogKind, setDialogKind] = useState<
-    TransactionKind | "payment" | null
-  >(null);
+  TransactionKind | "payment" | "debt" | null
+>(null);
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
@@ -607,9 +607,38 @@ const [storageError, setStorageError] = useState("");
 
     setTransactions((current) => [newTransaction, ...current]);
     setDialogKind(null);
+      function addDebt(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
+
+  const formData = new FormData(event.currentTarget);
+
+  const name = String(formData.get("name") ?? "").trim();
+  const amountOwed = Number(formData.get("amountOwed"));
+  const amountPaid = Number(formData.get("amountPaid") ?? 0);
+  const dueDate = String(formData.get("dueDate") ?? "");
+
+  if (
+    !name ||
+    !Number.isFinite(amountOwed) ||
+    !Number.isFinite(amountPaid) ||
+    amountOwed <= 0 ||
+    amountPaid < 0 ||
+    amountPaid > amountOwed
+  ) {
+    return;
   }
 
-  function recordPayment(event: FormEvent<HTMLFormElement>) {
+  const newDebt: CustomerDebt = {
+    id: crypto.randomUUID(),
+    name,
+    amountOwed,
+    amountPaid,
+    dueDate,
+  };
+
+  setDebts((current) => [newDebt, ...current]);
+  setDialogKind(null);
+}
     event.preventDefault();
 
     const formData = new FormData(event.currentTarget);
@@ -981,11 +1010,12 @@ const [storageError, setStorageError] = useState("");
           )}
 
           {page === "debts" && (
-            <DebtsPage
-              debts={debts}
-              onPayment={() => setDialogKind("payment")}
-            />
-          )}
+  <DebtsPage
+    debts={debts}
+    onPayment={() => setDialogKind("payment")}
+    onAddDebt={() => setDialogKind("debt")}
+  />
+)}
 
           {page === "reports" && (
   <ReportsPage transactions={transactions} />
