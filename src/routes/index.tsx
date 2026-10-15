@@ -1,5 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
+import type { Session } from "@supabase/supabase-js";
+import AuthScreen from "@/features/bizstarter/AuthScreen";
+import { supabase } from "@/lib/supabase";
 ArrowDownLeft,
 ArrowRight,
 ArrowUpRight,
@@ -74,7 +76,7 @@ export const Route = createFileRoute("/")({
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
-  component: Index,
+  component: AuthenticatedIndex,
 });
 
 const pageLinks: {
@@ -189,7 +191,52 @@ function isValidDebt(value: unknown): value is CustomerDebt {
   );
 }
 
-function Index() {
+function Index({ userId }: { userId: string }) {
+  function AuthenticatedIndex() {
+  const [session, setSession] = useState<Session | null>(null);
+  const [checkingSession, setCheckingSession] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    supabase.auth.getSession().then(({ data, error }) => {
+      if (!active) return;
+
+      if (error) {
+        console.error("Session check failed:", error);
+      }
+
+      setSession(data.session);
+      setCheckingSession(false);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      setSession(nextSession);
+      setCheckingSession(false);
+    });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  if (checkingSession) {
+    return <div className="p-8 text-center">Checking your account...</div>;
+  }
+
+  if (!session) {
+    return <AuthScreen onSuccess={() => {
+      void supabase.auth.getSession().then(({ data }) => {
+        setSession(data.session);
+      });
+    }} />;
+  }
+
+  return <Index key={session.user.id} userId={session.user.id} />;
+  }
   const [page, setPage] = useState<WorkspacePage | "home">("home");
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
