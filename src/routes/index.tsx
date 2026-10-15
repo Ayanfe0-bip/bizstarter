@@ -254,14 +254,16 @@ const [page, setPage] = useState<WorkspacePage | "home">("home");
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All categories");
 
-  // Restore saved business records when the application opens.
-  (() => {
+    // Restore saved business records when the application opens.
+  useEffect(() => {
     try {
       const savedTransactions = window.localStorage.getItem(
-        transactionstoragekey
+        transactionsStorageKey,
       );
 
-      const savedDebts = window.localStorage.getItem(debitstoragekey);
+      const savedDebts = window.localStorage.getItem(
+        debtsStorageKey,
+      );
 
       if (savedTransactions !== null) {
         const parsedTransactions: unknown = JSON.parse(savedTransactions);
@@ -294,12 +296,12 @@ const [page, setPage] = useState<WorkspacePage | "home">("home");
 
     try {
       window.localStorage.setItem(
-        transactionstoragekey
+        transactionsStorageKey,
         JSON.stringify(transactions),
       );
 
       window.localStorage.setItem(
-        debitstoragekey
+        debtsStorageKey,
         JSON.stringify(debts),
       );
 
@@ -311,12 +313,12 @@ const [page, setPage] = useState<WorkspacePage | "home">("home");
       );
     }
   }, [
-  storageLoaded,
-  transactions,
-  debts,
-  transactionsStorageKey,
-  debtsStorageKey,
-]);
+    storageLoaded,
+    transactions,
+    debts,
+    transactionsStorageKey,
+    debtsStorageKey,
+  ]);
 
   const sales = useMemo(
     () => transactions.filter((transaction) => transaction.kind === "sale"),
