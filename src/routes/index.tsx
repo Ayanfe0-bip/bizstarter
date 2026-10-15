@@ -127,8 +127,8 @@ const featureCards = [
   },
 ];
 
-const TRANSACTIONS_STORAGE_KEY = "bizstarter-transactions-v1";
-const DEBTS_STORAGE_KEY = "bizstarter-debts-v1";
+const TRANSACTIONS_STORAGE_KEY_PREFIX = "bizstarter-transactions-v1";
+const DEBTS_STORAGE_KEY_PREFIX = "bizstarter-debts-v1";
 
 function formatMoney(value: number) {
   return new Intl.NumberFormat("en-NG", {
