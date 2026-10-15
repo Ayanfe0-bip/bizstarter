@@ -26,7 +26,16 @@ export type CustomerDebt = {
   amountPaid: number;
   dueDate: string;
 };
-
+export type Product = {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  costPrice: number;
+  sellingPrice: number;
+  quantityInStock: number;
+  lowStockThreshold: number;
+};
 function dayOffset(offset: number) {
   const date = new Date();
   date.setDate(date.getDate() - offset);
