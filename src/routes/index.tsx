@@ -463,6 +463,72 @@ const [storageError, setStorageError] = useState("");
       cancelled = true;
     };
   }, [storageLoaded, userId]);
+      // Automatically save changes to this user's cloud records.
+  useEffect(() => {
+    if (!cloudReady) return;
+
+    let cancelled = false;
+
+    const timer = window.setTimeout(() => {
+      async function saveToCloud() {
+        try {
+          const transactionRows = transactions.map((item) => ({
+            id: item.id,
+            user_id: userId,
+            kind: item.kind,
+            description: item.description,
+            amount: item.amount,
+            category: item.category,
+            transaction_date: item.date,
+          }));
+
+          const debtRows = debts.map((item) => ({
+            id: item.id,
+            user_id: userId,
+            name: item.name,
+            amount_owed: item.amountOwed,
+            amount_paid: item.amountPaid,
+            due_date: item.dueDate || null,
+          }));
+
+          if (transactionRows.length > 0) {
+            const { error } = await supabase
+              .from("bizstarter_transactions")
+              .upsert(transactionRows, { onConflict: "id" });
+
+            if (error) throw error;
+          }
+
+          if (debtRows.length > 0) {
+            const { error } = await supabase
+              .from("bizstarter_customer_debts")
+              .upsert(debtRows, { onConflict: "id" });
+
+            if (error) throw error;
+          }
+
+          if (!cancelled) {
+            setStorageError("");
+          }
+        } catch (error) {
+          console.error("BizStarter cloud save failed:", error);
+
+          if (!cancelled) {
+            setStorageError(
+              "Cloud save failed. Your device records are still available.",
+            );
+          }
+        }
+      }
+
+      void saveToCloud();
+    }, 500);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [cloudReady, transactions, debts, userId]);
   const sales = useMemo(
     () => transactions.filter((transaction) => transaction.kind === "sale"),
     [transactions],
