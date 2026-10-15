@@ -1431,13 +1431,11 @@ function DashboardPage({
         }
       />
 
-            <div className="sample-notice">
+                  <div className="sample-notice">
         <Sparkles />
         <span>
           <strong>Data storage:</strong>{" "}
-          {cloudReady
-            ? "Your business records are connected to cloud sync for this account."
-            : "Your records are saved on this device while we check cloud synchronization."}
+          Your business records are being checked for cloud synchronization.
         </span>
       </div>
 
