@@ -1745,143 +1745,334 @@ function DashboardPage({
   onNavigate: (page: WorkspacePage) => void;
 }) {
   const recent = transactions.slice(0, 5);
+  const profit = salesTotal - expensesTotal;
+
+  const metrics = [
+    {
+      title: "Total sales",
+      amount: salesTotal,
+      icon: ShoppingBag,
+      color: "bg-emerald-100 text-emerald-800",
+      detail: "Money received from sales",
+    },
+    {
+      title: "Total expenses",
+      amount: expensesTotal,
+      icon: Wallet,
+      color: "bg-orange-100 text-orange-800",
+      detail: "Recorded business costs",
+    },
+    {
+      title: "Estimated profit",
+      amount: profit,
+      icon: TrendingUp,
+      color: "bg-blue-100 text-blue-800",
+      detail: "Sales minus expenses",
+    },
+    {
+      title: "Customer debts",
+      amount: debtsTotal,
+      icon: HandCoins,
+      color: "bg-amber-100 text-amber-800",
+      detail: "Outstanding balances",
+    },
+  ];
 
   return (
-    <>
-      <PageHeading
-        eyebrow="BUSINESS OVERVIEW"
-        title="Welcome to your business"
-        description="Here’s an overview of your recorded business activity."
-        action={
-          <div className="heading-actions">
-            <Button variant="outline" onClick={onAddExpense}>
-              <Plus /> Add expense
+    <div className="space-y-7 pb-8">
+      <section className="overflow-hidden rounded-3xl bg-[#075E45] p-6 text-white shadow-lg sm:p-8">
+        <div className="flex flex-col justify-between gap-6 sm:flex-row sm:items-center">
+          <div className="max-w-xl">
+            <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold tracking-wide text-emerald-50">
+              <Sparkles size={15} />
+              YOUR BUSINESS AT A GLANCE
+            </div>
+
+            <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
+              Welcome to your business
+            </h1>
+
+            <p className="mt-3 max-w-lg text-sm leading-6 text-emerald-50 sm:text-base">
+              Keep track of your money, understand your performance, and make
+              confident decisions as your business grows.
+            </p>
+          </div>
+
+          <div className="flex shrink-0 flex-wrap gap-3">
+            <Button
+              onClick={onAddExpense}
+              className="border border-white/30 bg-white/10 text-white hover:bg-white/20"
+            >
+              <Plus size={17} />
+              Add expense
             </Button>
-            <Button onClick={onAddSale}>
-              <Plus /> Add sale
+
+            <Button
+              onClick={onAddSale}
+              className="bg-[#D6AD55] text-[#172B3A] hover:bg-[#e5c477]"
+            >
+              <Plus size={17} />
+              Record sale
             </Button>
           </div>
-        }
-      />
+        </div>
 
-                  <div className="sample-notice">
-        <Sparkles />
-        <span>
-          <strong>Data storage:</strong>{" "}
-          Your business records are being checked for cloud synchronization.
-        </span>
-      </div>
-
-      <section className="metric-grid" aria-label="Business overview">
-        <MetricCard
-          title="Total sales"
-          amount={salesTotal}
-          icon={<ShoppingBag />}
-          detail="Across your recorded sales"
-          color="green"
-        />
-        <MetricCard
-          title="Total expenses"
-          amount={expensesTotal}
-          icon={<Wallet />}
-          detail="Across your recorded expenses"
-          color="orange"
-        />
-        <MetricCard
-          title="Estimated profit"
-          amount={salesTotal - expensesTotal}
-          icon={<TrendingUp />}
-          detail="Sales less recorded expenses"
-          color="blue"
-        />
-        <MetricCard
-          title="Customer debts"
-          amount={debtsTotal}
-          icon={<HandCoins />}
-          detail="Outstanding customer balances"
-          color="rose"
-        />
+        <div className="mt-7 flex items-center gap-2 border-t border-white/15 pt-4 text-xs text-emerald-50 sm:text-sm">
+          <ShieldCheck size={17} />
+          Your business workspace
+          <span className="text-white/50">•</span>
+          Sales, expenses, debts and inventory
+        </div>
       </section>
 
-      <section className="dashboard-grid">
-        <div className="content-panel chart-panel">
-          <div className="panel-heading">
+      <section>
+        <div className="mb-4 flex items-end justify-between gap-3">
+          <div>
+            <h2 className="text-lg font-bold text-[#172B3A] sm:text-xl">
+              Financial overview
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              A summary of your recorded business activity.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {metrics.map((metric) => {
+            const Icon = metric.icon;
+
+            return (
+              <article
+                key={metric.title}
+                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-sm font-medium text-slate-600">
+                    {metric.title}
+                  </span>
+
+                  <span
+                    className={`flex h-11 w-11 items-center justify-center rounded-xl ${metric.color}`}
+                  >
+                    <Icon size={21} />
+                  </span>
+                </div>
+
+                <p className="mt-5 break-words text-2xl font-bold tracking-tight text-[#172B3A] sm:text-3xl">
+                  {formatMoney(metric.amount)}
+                </p>
+
+                <p className="mt-2 text-xs text-slate-500">
+                  {metric.detail}
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      <section>
+        <div className="mb-4">
+          <h2 className="text-lg font-bold text-[#172B3A] sm:text-xl">
+            Manage your business
+          </h2>
+          <p className="mt-1 text-sm text-slate-500">
+            Open a workspace or complete a common task.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <button
+            type="button"
+            onClick={onAddSale}
+            className="flex items-center gap-4 rounded-2xl border border-emerald-100 bg-white p-5 text-left shadow-sm transition hover:border-emerald-400 hover:shadow-md"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-800">
+              <ShoppingBag size={22} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <strong className="block text-sm font-bold text-[#172B3A]">
+                Record a sale
+              </strong>
+              <span className="mt-1 block text-xs text-slate-500">
+                Add money received
+              </span>
+            </span>
+            <ArrowRight size={18} className="text-emerald-700" />
+          </button>
+
+          <button
+            type="button"
+            onClick={onAddExpense}
+            className="flex items-center gap-4 rounded-2xl border border-orange-100 bg-white p-5 text-left shadow-sm transition hover:border-orange-300 hover:shadow-md"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-800">
+              <Wallet size={22} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <strong className="block text-sm font-bold text-[#172B3A]">
+                Record an expense
+              </strong>
+              <span className="mt-1 block text-xs text-slate-500">
+                Track business spending
+              </span>
+            </span>
+            <ArrowRight size={18} className="text-emerald-700" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigate("debts")}
+            className="flex items-center gap-4 rounded-2xl border border-amber-100 bg-white p-5 text-left shadow-sm transition hover:border-amber-300 hover:shadow-md"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+              <HandCoins size={22} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <strong className="block text-sm font-bold text-[#172B3A]">
+                Customer debts
+              </strong>
+              <span className="mt-1 block text-xs text-slate-500">
+                Review unpaid balances
+              </span>
+            </span>
+            <ArrowRight size={18} className="text-emerald-700" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => onNavigate("inventory")}
+            className="flex items-center gap-4 rounded-2xl border border-blue-100 bg-white p-5 text-left shadow-sm transition hover:border-blue-300 hover:shadow-md"
+          >
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-800">
+              <ClipboardList size={22} />
+            </span>
+            <span className="min-w-0 flex-1">
+              <strong className="block text-sm font-bold text-[#172B3A]">
+                Inventory
+              </strong>
+              <span className="mt-1 block text-xs text-slate-500">
+                Manage products and stock
+              </span>
+            </span>
+            <ArrowRight size={18} className="text-emerald-700" />
+          </button>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-5 xl:grid-cols-2">
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-5 flex items-start justify-between gap-3">
             <div>
-              <h2>Sales overview</h2>
-              <p>
-                Illustrative chart; recorded sales totals are shown above.
+              <h2 className="text-lg font-bold text-[#172B3A]">
+                Sales overview
+              </h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Visual preview of weekly sales activity.
               </p>
             </div>
-            <Button variant="outline" size="sm">
-              Chart preview <ChevronDown />
-            </Button>
+
+            <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+              Preview
+            </span>
           </div>
+
           <MiniChart />
+          <p className="mt-3 text-xs leading-5 text-slate-500">
+            The chart is illustrative and is not yet calculated from your
+            individual daily sales.
+          </p>
         </div>
 
-        <div className="content-panel quick-panel">
-          <div className="panel-heading">
-            <div>
-              <h2>Quick actions</h2>
-              <p>Keep your records up to date</p>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+          <div className="mb-5">
+            <h2 className="text-lg font-bold text-[#172B3A]">
+              Recent transactions
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Your latest recorded sales and expenses.
+            </p>
+          </div>
+
+          {recent.length > 0 ? (
+            <div className="space-y-1">
+              {recent.map((item) => (
+                <div
+                  key={item.id}
+                  className="flex items-center gap-3 border-b border-slate-100 py-3 last:border-0"
+                >
+                  <span
+                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
+                      item.kind === "sale"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : "bg-orange-100 text-orange-800"
+                    }`}
+                  >
+                    {item.kind === "sale" ? (
+                      <ArrowDownLeft size={20} />
+                    ) : (
+                      <ArrowUpRight size={20} />
+                    )}
+                  </span>
+
+                  <span className="min-w-0 flex-1">
+                    <strong className="block truncate text-sm font-semibold text-[#172B3A]">
+                      {item.description}
+                    </strong>
+                    <span className="mt-1 block text-xs text-slate-500">
+                      {item.category} · {formatDate(item.date)}
+                    </span>
+                  </span>
+
+                  <strong
+                    className={`shrink-0 text-sm font-bold ${
+                      item.kind === "sale"
+                        ? "text-emerald-700"
+                        : "text-orange-700"
+                    }`}
+                  >
+                    {item.kind === "sale" ? "+" : "−"}
+                    {formatMoney(item.amount)}
+                  </strong>
+                </div>
+              ))}
             </div>
-          </div>
+          ) : (
+            <div className="rounded-xl bg-[#F8FAF7] px-4 py-8 text-center">
+              <Receipt className="mx-auto text-slate-400" size={30} />
+              <p className="mt-3 font-semibold text-[#172B3A]">
+                No transactions yet
+              </p>
+              <p className="mt-1 text-sm text-slate-500">
+                Your sales and expenses will appear here when recorded.
+              </p>
 
-          <button className="quick-action" onClick={onAddSale}>
-            <span className="quick-icon mint">
-              <ShoppingBag />
-            </span>
-            <span>
-              <strong>Record a sale</strong>
-              <small>Add a completed order</small>
-            </span>
-            <ArrowRight />
-          </button>
+              <Button onClick={onAddSale} className="mt-4">
+                <Plus size={17} />
+                Record your first sale
+              </Button>
+            </div>
+          )}
 
-          <button className="quick-action" onClick={onAddExpense}>
-            <span className="quick-icon peach">
-              <Wallet />
-            </span>
-            <span>
-              <strong>Record an expense</strong>
-              <small>Log a business cost</small>
-            </span>
-            <ArrowRight />
-          </button>
-
-          <button className="quick-action" onClick={() => onNavigate("debts")}>
-            <span className="quick-icon lilac">
-              <HandCoins />
-            </span>
-            <span>
-              <strong>Review customer debts</strong>
-              <small>Check balances and payments</small>
-            </span>
-            <ArrowRight />
-          </button>
+          {recent.length > 0 && (
+            <button
+              type="button"
+              onClick={() => onNavigate("sales")}
+              className="mt-4 inline-flex items-center gap-2 text-sm font-semibold text-emerald-800 hover:text-emerald-600"
+            >
+              View transactions
+              <ArrowRight size={16} />
+            </button>
+          )}
         </div>
       </section>
 
-      <section className="content-panel transaction-panel">
-        <div className="panel-heading">
-          <div>
-            <h2>Recent transactions</h2>
-            <p>Your latest recorded business activity</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => onNavigate("sales")}
-          >
-            See all <ArrowRight />
-          </Button>
-        </div>
-
-        <TransactionTable transactions={recent} />
-      </section>
-    </>
+      <p className="text-center text-xs text-slate-400">
+        BizStarter by Ayanfe Innovation Labs Limited
+      </p>
+    </div>
   );
-}
+}      
 
 function MetricCard({
   title,
