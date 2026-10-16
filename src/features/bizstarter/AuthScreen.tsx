@@ -3,9 +3,13 @@ import { supabase } from "@/lib/supabase";
 
 type AuthScreenProps = {
   onSuccess: () => void;
+  onBack?: () => void;
 };
 
-export default function AuthScreen({ onSuccess }: AuthScreenProps) {
+export default function AuthScreen({
+  onSuccess,
+  onBack,
+}: AuthScreenProps) {
   const [mode, setMode] = useState<"login" | "signup">("signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -62,6 +66,15 @@ export default function AuthScreen({ onSuccess }: AuthScreenProps) {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
       <section className="w-full max-w-md rounded-2xl border bg-card p-6 shadow-lg sm:p-8">
+        {onBack && (
+  <button
+    type="button"
+    onClick={onBack}
+    className="mb-5 rounded-lg px-3 py-2 text-sm font-semibold text-primary hover:bg-muted"
+  >
+    ← Back to homepage
+  </button>
+)}
         <div className="mb-6 text-center">
           <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-2xl font-bold text-primary-foreground">
             B
