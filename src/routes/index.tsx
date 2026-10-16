@@ -1144,35 +1144,145 @@ setDialogKind(null);
 
 {page === "inventory" && (
   <section className="space-y-6">
-    <div>
-      <h1 className="text-2xl font-bold">Inventory</h1>
-      <p className="text-muted-foreground">
-        Manage your products, prices, and stock levels.
-      </p>
-    </div>
-
-    <div className="rounded-xl border p-6">
-      <div className="flex items-center gap-3">
-        <div className="rounded-lg bg-muted p-3">
-          <ClipboardList className="h-6 w-6" />
-        </div>
-
-        <div>
-          <h2 className="font-semibold">Product inventory</h2>
-          <p className="text-sm text-muted-foreground">
-            Your inventory workspace is ready for product management.
-          </p>
-        </div>
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <div>
+        <h1 className="text-2xl font-bold">Inventory</h1>
+        <p className="text-muted-foreground">
+          Manage your products, prices, and stock levels.
+        </p>
       </div>
 
-      <p className="mt-4 text-sm text-muted-foreground">
-        Next, we'll connect this page to your Supabase products table so you
-        can add products, update prices, and track stock.
-      </p>
+      <Button onClick={() => setDialogKind("product")}>
+        <Plus className="mr-2 h-4 w-4" />
+        Add Product
+      </Button>
+    </div>
+
+    <div className="grid gap-4 sm:grid-cols-3">
+      <div className="rounded-xl border p-5">
+        <p className="text-sm text-muted-foreground">
+          Total Products
+        </p>
+        <p className="mt-2 text-2xl font-bold">
+          {products.length}
+        </p>
+      </div>
+
+      <div className="rounded-xl border p-5">
+        <p className="text-sm text-muted-foreground">
+          Total Items in Stock
+        </p>
+        <p className="mt-2 text-2xl font-bold">
+          {products.reduce(
+            (total, product) =>
+              total + product.quantityInStock,
+            0,
+          )}
+        </p>
+      </div>
+
+      <div className="rounded-xl border p-5">
+        <p className="text-sm text-muted-foreground">
+          Low-Stock Products
+        </p>
+        <p className="mt-2 text-2xl font-bold">
+          {products.filter(
+            (product) =>
+              product.quantityInStock <=
+              product.lowStockThreshold,
+          ).length}
+        </p>
+      </div>
+    </div>
+
+    <div className="overflow-hidden rounded-xl border">
+      <div className="border-b p-5">
+        <h2 className="font-semibold">Your Products</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          View your prices and monitor available stock.
+        </p>
+      </div>
+
+      {products.length === 0 ? (
+        <div className="p-10 text-center">
+          <ClipboardList className="mx-auto h-10 w-10 text-muted-foreground" />
+
+          <h3 className="mt-4 font-semibold">
+            No products yet
+          </h3>
+
+          <p className="mt-2 text-sm text-muted-foreground">
+            Add your first product to start tracking your inventory.
+          </p>
+
+          <Button
+            className="mt-5"
+            onClick={() => setDialogKind("product")}
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Add Your First Product
+          </Button>
+        </div>
+      ) : (
+        <div className="divide-y">
+          {products.map((product) => {
+            const isLowStock =
+              product.quantityInStock <=
+              product.lowStockThreshold;
+
+            return (
+              <div
+                key={product.id}
+                className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between"
+              >
+                <div className="min-w-0">
+                  <h3 className="font-semibold">
+                    {product.name}
+                  </h3>
+
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {product.category || "Uncategorized"}
+                    {product.sku
+                      ? ` · SKU: ${product.sku}`
+                      : ""}
+                  </p>
+
+                  <p className="mt-2 text-sm">
+                    Cost: {formatMoney(product.costPrice)}
+                    {" · "}
+                    Selling: {formatMoney(product.sellingPrice)}
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 sm:justify-end">
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Quantity
+                    </p>
+
+                    <p className="font-semibold">
+                      {product.quantityInStock}
+                    </p>
+                  </div>
+
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                      isLowStock
+                        ? "bg-red-100 text-red-700"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
+                    {isLowStock ? "Low stock" : "In stock"}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   </section>
 )}
-
           {page === "reports" && (
   <ReportsPage transactions={transactions} />
 )}
