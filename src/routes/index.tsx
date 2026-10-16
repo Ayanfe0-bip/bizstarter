@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type { Session } from "@supabase/supabase-js";
 import AuthScreen from "@/features/bizstarter/AuthScreen";
+import LandingPage from "@/features/bizstarter/LandingPage";
 import { supabase } from "@/lib/supabase";
 import {
 ArrowDownLeft,
@@ -197,6 +198,7 @@ function isValidDebt(value: unknown): value is CustomerDebt {
   function AuthenticatedIndex() {
   const [session, setSession] = useState<Session | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
+  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -230,11 +232,25 @@ function isValidDebt(value: unknown): value is CustomerDebt {
   }
 
   if (!session) {
-    return <AuthScreen onSuccess={() => {
-      void supabase.auth.getSession().then(({ data }) => {
-        setSession(data.session);
-      });
-    }} />;
+  if (!showAuth) {
+    return (
+      <LandingPage
+        onGetStarted={() => setShowAuth(true)}
+        onLogin={() => setShowAuth(true)}
+      />
+    );
+  }
+
+  return (
+    <AuthScreen
+      onBack={() => setShowAuth(false)}
+      onSuccess={() => {
+        void supabase.auth.getSession().then(({ data }) => {
+          setSession(data.session);
+        });
+      }}
+    />
+  );
   }
     
 return <Index key={session.user.id} userId={session.user.id} />;
