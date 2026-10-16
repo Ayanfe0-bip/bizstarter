@@ -251,7 +251,7 @@ const [cloudReady, setCloudReady] = useState(false);
 const [storageError, setStorageError] = useState("");
 
   const [dialogKind, setDialogKind] = useState<
-  TransactionKind | "payment" | "debt" | null
+  TransactionKind | "payment" | "debt" | "product" | null
 >(null);
 
   const [menuOpen, setMenuOpen] = useState(false);
