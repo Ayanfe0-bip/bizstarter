@@ -687,7 +687,47 @@ setTransactions((current) => [newTransaction, ...current]);
 setDialogKind(null);
 
 }
+function addProduct(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
 
+  const formData = new FormData(event.currentTarget);
+
+  const name = String(formData.get("name") ?? "").trim();
+  const sku = String(formData.get("sku") ?? "").trim();
+  const category = String(formData.get("category") ?? "").trim();
+  const costPrice = Number(formData.get("costPrice"));
+  const sellingPrice = Number(formData.get("sellingPrice"));
+  const quantityInStock = Number(formData.get("quantityInStock"));
+  const lowStockThreshold = Number(formData.get("lowStockThreshold") ?? 5);
+
+  if (
+    !name ||
+    !Number.isFinite(costPrice) ||
+    !Number.isFinite(sellingPrice) ||
+    !Number.isInteger(quantityInStock) ||
+    !Number.isInteger(lowStockThreshold) ||
+    costPrice < 0 ||
+    sellingPrice < 0 ||
+    quantityInStock < 0 ||
+    lowStockThreshold < 0
+  ) {
+    return;
+  }
+
+  const newProduct: Product = {
+    id: crypto.randomUUID(),
+    name,
+    sku,
+    category,
+    costPrice,
+    sellingPrice,
+    quantityInStock,
+    lowStockThreshold,
+  };
+
+  setProducts((current) => [newProduct, ...current]);
+  setDialogKind(null);
+                          }
 function addDebt(event: FormEvent<HTMLFormElement>) {
 event.preventDefault();
 
