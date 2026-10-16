@@ -256,7 +256,7 @@ function isValidDebt(value: unknown): value is CustomerDebt {
 return <Index key={session.user.id} userId={session.user.id} />;
 }
 function Index({ userId }: { userId: string }) {
-const [page, setPage] = useState<WorkspacePage | "home">("home");
+const [page, setPage] = useState<WorkspacePage | "home">("dashboard");
   const transactionsStorageKey = `${TRANSACTIONS_STORAGE_KEY_PREFIX}-${userId}`;
   const debtsStorageKey = `${DEBTS_STORAGE_KEY_PREFIX}-${userId}`;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
