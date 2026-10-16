@@ -1381,6 +1381,103 @@ Record how much a customer owes your business.
             </Button>
           </form>
         </>
+            ) : dialogKind === "product" ? (
+        <>
+          <DialogHeader>
+            <span className="dialog-icon">
+              <ClipboardList />
+            </span>
+            <DialogTitle>Add a product</DialogTitle>
+            <DialogDescription>
+              Enter the product details and current stock.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form className="entry-form" onSubmit={addProduct}>
+            <label>
+              Product name
+              <input
+                name="name"
+                type="text"
+                placeholder="e.g. Rice"
+                maxLength={100}
+                required
+              />
+            </label>
+
+            <label>
+              Product code / SKU (optional)
+              <input
+                name="sku"
+                type="text"
+                placeholder="e.g. RICE001"
+                maxLength={50}
+              />
+            </label>
+
+            <label>
+              Category (optional)
+              <input
+                name="category"
+                type="text"
+                placeholder="e.g. Food"
+                maxLength={50}
+              />
+            </label>
+
+            <label>
+              Cost price per item (₦)
+              <input
+                name="costPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                required
+              />
+            </label>
+
+            <label>
+              Selling price per item (₦)
+              <input
+                name="sellingPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                required
+              />
+            </label>
+
+            <label>
+              Quantity in stock
+              <input
+                name="quantityInStock"
+                type="number"
+                min="0"
+                step="1"
+                defaultValue="0"
+                required
+              />
+            </label>
+
+            <label>
+              Low-stock warning at quantity
+              <input
+                name="lowStockThreshold"
+                type="number"
+                min="0"
+                step="1"
+                defaultValue="5"
+                required
+              />
+            </label>
+
+            <Button type="submit" className="form-submit">
+              Save product
+            </Button>
+          </form>
+        </>
       ) : null}
         </DialogContent>
       </Dialog>
