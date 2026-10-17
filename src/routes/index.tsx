@@ -132,6 +132,7 @@ const featureCards = [
 
 const TRANSACTIONS_STORAGE_KEY_PREFIX = "bizstarter-transactions-v1";
 const DEBTS_STORAGE_KEY_PREFIX = "bizstarter-debts-v1";
+const PRODUCTS_STORAGE_KEY_PREFIX = "bizstarter-products-v1";
 
 function formatMoney(value: number) {
   return new Intl.NumberFormat("en-NG", {
@@ -194,7 +195,30 @@ function isValidDebt(value: unknown): value is CustomerDebt {
     typeof item.dueDate === "string"
   );
 }
+function isValidProduct(value: unknown): value is Product {
+  if (!value || typeof value !== "object") return false;
 
+  const item = value as Partial<Product>;
+
+  return (
+    typeof item.id === "string" &&
+    typeof item.name === "string" &&
+    typeof item.sku === "string" &&
+    typeof item.category === "string" &&
+    typeof item.costPrice === "number" &&
+    Number.isFinite(item.costPrice) &&
+    item.costPrice >= 0 &&
+    typeof item.sellingPrice === "number" &&
+    Number.isFinite(item.sellingPrice) &&
+    item.sellingPrice >= 0 &&
+    typeof item.quantityInStock === "number" &&
+    Number.isFinite(item.quantityInStock) &&
+    item.quantityInStock >= 0 &&
+    typeof item.lowStockThreshold === "number" &&
+    Number.isFinite(item.lowStockThreshold) &&
+    item.lowStockThreshold >= 0
+  );
+    }
   function AuthenticatedIndex() {
   const [session, setSession] = useState<Session | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
@@ -258,7 +282,8 @@ return <Index key={session.user.id} userId={session.user.id} />;
 function Index({ userId }: { userId: string }) {
 const [page, setPage] = useState<WorkspacePage | "home">("dashboard");
   const transactionsStorageKey = `${TRANSACTIONS_STORAGE_KEY_PREFIX}-${userId}`;
-  const debtsStorageKey = `${DEBTS_STORAGE_KEY_PREFIX}-${userId}`;
+const debtsStorageKey = `${DEBTS_STORAGE_KEY_PREFIX}-${userId}`;
+const productsStorageKey = `${PRODUCTS_STORAGE_KEY_PREFIX}-${userId}`;
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 const [debts, setDebts] = useState<CustomerDebt[]>([]);
 const [products, setProducts] = useState<Product[]>([]);
