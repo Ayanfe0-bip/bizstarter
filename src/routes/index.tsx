@@ -420,7 +420,10 @@ const savedProducts = window.localStorage.getItem(
         debtsStorageKey,
         JSON.stringify(debts),
       );
-
+    window.localStorage.setItem(
+  productsStorageKey,
+  JSON.stringify(products),
+); 
       setStorageError("");
     } catch (error) {
       console.error("Could not save BizStarter records:", error);
@@ -429,12 +432,15 @@ const savedProducts = window.localStorage.getItem(
       );
     }
   }, [
-    storageLoaded,
-    transactions,
-    debts,
-    transactionsStorageKey,
-    debtsStorageKey,
-  ]);
+  storageLoaded,
+  transactions,
+  debts,
+  products,
+  transactionsStorageKey,
+  debtsStorageKey,
+  productsStorageKey,
+]);
+    
   // Load cloud records and safely merge them with this user's local records.
   useEffect(() => {
     if (!storageLoaded) return;
@@ -529,7 +535,18 @@ const [
 
           return Array.from(records.values());
         };
+       const localProducts: Product[] = products
+  .filter(isValidProduct)
+  .map((item) =>
+    validUuid(item.id)
+      ? item
+      : { ...item, id: crypto.randomUUID() },
+  );
 
+const mergedProducts = mergeById(
+  cloudProducts,
+  localProducts,
+);
         const mergedTransactions = mergeById(
           cloudTransactions,
           localTransactions,
