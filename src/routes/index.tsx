@@ -362,7 +362,9 @@ const savedProducts = window.localStorage.getItem(
         isValidTransaction,
       );
       const savedDebtRecords = parseArray(savedDebts).filter(isValidDebt);
-
+      const savedProductRecords = parseArray(savedProducts).filter(
+  isValidProduct,
+);
       // Do not load legacy records into another account.
       const isolatedTransactions = isLegacyOwner
         ? savedTransactionRecords
@@ -553,7 +555,6 @@ const mergedProducts = mergeById(
         );
 
         const mergedDebts = mergeById(cloudDebts, localDebts);
-        const mergedProducts = cloudProducts;
         if (mergedTransactions.length > 0) {
           const { error } = await supabase
             .from("bizstarter_transactions")
