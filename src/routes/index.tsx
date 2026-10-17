@@ -590,7 +590,25 @@ const mergedProducts = mergeById(
 
           if (error) throw error;
         }
+      if (mergedProducts.length > 0) {
+  const productRows = mergedProducts.map((item) => ({
+    id: item.id,
+    user_id: userId,
+    name: item.name,
+    sku: item.sku || null,
+    category: item.category || null,
+    cost_price: item.costPrice,
+    selling_price: item.sellingPrice,
+    quantity_in_stock: item.quantityInStock,
+    low_stock_threshold: item.lowStockThreshold,
+  }));
 
+  const { error } = await supabase
+    .from("bizstarter_products")
+    .upsert(productRows, { onConflict: "id" });
+
+  if (error) throw error;
+}
         if (cancelled) return;
 
         setTransactions(mergedTransactions);
