@@ -303,9 +303,16 @@ const [storageError, setStorageError] = useState("");
   useEffect(() => {
     try {
       const savedTransactions = window.localStorage.getItem(
-        transactionsStorageKey,
-      );
-      const savedDebts = window.localStorage.getItem(debtsStorageKey);
+  transactionsStorageKey,
+);
+
+const savedDebts = window.localStorage.getItem(
+  debtsStorageKey,
+);
+
+const savedProducts = window.localStorage.getItem(
+  productsStorageKey,
+);
 
       // Legacy records were stored under shared keys before accounts
       // had separate local storage. Keep them with the original owner.
