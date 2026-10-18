@@ -649,14 +649,15 @@ const mergedProducts = mergeById(
       async function saveToCloud() {
         try {
           const transactionRows = transactions.map((item) => ({
-            id: item.id,
-            user_id: userId,
-            kind: item.kind,
-            description: item.description,
-            amount: item.amount,
-            category: item.category,
-            transaction_date: item.date,
-          }));
+  id: item.id,
+  user_id: userId,
+  kind: item.kind,
+  description: item.description,
+  customer_name: item.customerName ?? null,
+  amount: item.amount,
+  category: item.category,
+  transaction_date: item.date,
+}));
 
           const debtRows = debts.map((item) => ({
             id: item.id,
