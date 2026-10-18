@@ -2066,7 +2066,6 @@ setDialogKind(null);
     Save {dialogKind === "sale" ? "sale" : "expense"}
   </Button>
 </form>
-          </form>
             </>
           ) : dialogKind === "payment" ? (
             <>
