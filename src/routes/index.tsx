@@ -1602,8 +1602,12 @@ setDialogKind(null);
     </div>
   </section>
 )}
-          {page === "reports" && (
-  <ReportsPage transactions={transactions} />
+        {page === "reports" && (
+  <ReportsPage
+    transactions={transactions}
+    debts={debts}
+    products={products}
+  />
 )}
 
         {page === "settings" && (
