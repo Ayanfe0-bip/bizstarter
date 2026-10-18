@@ -514,6 +514,13 @@ const [storageError, setStorageError] = useState("");
   const [dialogKind, setDialogKind] = useState<
   TransactionKind | "payment" | "debt" | "product" | null
 >(null);
+
+const [saleLines, setSaleLines] = useState<
+  Array<{ productId: string; quantity: number }>
+>([
+  { productId: "", quantity: 1 },
+]);
+
 const [receiptTransaction, setReceiptTransaction] =
   useState<Transaction | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -963,49 +970,167 @@ transaction_date: item.date,
     (debt) => debt.amountOwed > debt.amountPaid,
   ).length;
 
-        function addTransaction(event: FormEvent<HTMLFormElement>) {
-event.preventDefault();
+       function addTransaction(event: FormEvent<HTMLFormElement>) {
+  event.preventDefault();
 
-if (dialogKind !== "sale" && dialogKind !== "expense") return;
+  if (dialogKind !== "sale" && dialogKind !== "expense") {
+    return;
+  }
 
-const formData = new FormData(event.currentTarget);
+  const formData = new FormData(event.currentTarget);
 
-const description = String(formData.get("description") ?? "").trim();
-   const customerName =
-  dialogKind === "sale"
-    ? String(formData.get("customerName") ?? "").trim()
-    : "";       
-const amount = Number(formData.get("amount"));
-const date = String(formData.get("date") ?? "");
+  const date = String(formData.get("date") ?? "");
 
-const category =
-  dialogKind === "sale"
-    ? "Product sales"
-    : String(formData.get("category") ?? "Other");
+  const customerName =
+    dialogKind === "sale"
+      ? String(formData.get("customerName") ?? "").trim()
+      : "";
 
-if (!description || !Number.isFinite(amount) || amount <= 0 || !date) {
-  return;
-}
+  let description = String(
+    formData.get("description") ?? "",
+  ).trim();
 
-const newTransaction: Transaction = {
-  id: crypto.randomUUID(),
-  kind: dialogKind,
-  description,
-  customerName,
-  amount,
-  category,
-  date,
-};
+  let amount = Number(formData.get("amount"));
 
-setTransactions((current) => [newTransaction, ...current]);
+  const selectedLines =
+    dialogKind === "sale"
+      ? saleLines.filter((line) => line.productId.trim() !== "")
+      : [];
 
-if (newTransaction.kind === "sale") {
-  setReceiptTransaction(newTransaction);
-}
+  const quantitiesByProduct = new Map<string, number>();
 
-setDialogKind(null);
+  // Validate the selected products and quantities.
+  for (const line of selectedLines) {
+    if (!Number.isInteger(line.quantity) || line.quantity < 1) {
+      window.alert(
+        "Enter a whole-number quantity of at least 1 for each selected product.",
+      );
+      return;
+    }
 
-}
+    quantitiesByProduct.set(
+      line.productId,
+      (quantitiesByProduct.get(line.productId) ?? 0) +
+        line.quantity,
+    );
+  }
+
+  // Check stock availability before recording the sale.
+  for (const [productId, quantity] of quantitiesByProduct) {
+    const product = products.find(
+      (item) => item.id === productId,
+    );
+
+    if (!product) {
+      window.alert(
+        "A selected product could not be found. Please select it again.",
+      );
+      return;
+    }
+
+    if (quantity > product.quantityInStock) {
+      window.alert(
+        `Not enough stock for ${product.name}. Available: ${product.quantityInStock}; requested: ${quantity}.`,
+      );
+      return;
+    }
+  }
+
+  // Calculate the total and prepare the sale description.
+  if (selectedLines.length > 0) {
+    const descriptions: string[] = [];
+
+    amount = 0;
+
+    for (const line of selectedLines) {
+      const product = products.find(
+        (item) => item.id === line.productId,
+      );
+
+      if (!product) {
+        window.alert(
+          "A selected product could not be found.",
+        );
+        return;
+      }
+
+      descriptions.push(
+        `${product.name} x ${line.quantity}`,
+      );
+
+      amount += product.sellingPrice * line.quantity;
+    }
+
+    description = descriptions.join(", ");
+  }
+
+  const category =
+    dialogKind === "sale"
+      ? "Product sales"
+      : String(formData.get("category") ?? "Other");
+
+  // Validate the final transaction before changing inventory.
+  if (
+    !description ||
+    !Number.isFinite(amount) ||
+    amount <= 0 ||
+    !date
+  ) {
+    window.alert(
+      "Please enter a valid description, amount, and date.",
+    );
+    return;
+  }
+
+  const newTransaction: Transaction = {
+    id: crypto.randomUUID(),
+    kind: dialogKind,
+    description,
+    customerName,
+    amount,
+    category,
+    date,
+  };
+
+  // Deduct sold quantities from the existing inventory.
+  if (
+    dialogKind === "sale" &&
+    quantitiesByProduct.size > 0
+  ) {
+    setProducts((currentProducts) =>
+      currentProducts.map((product) => {
+        const quantitySold =
+          quantitiesByProduct.get(product.id) ?? 0;
+
+        if (quantitySold === 0) {
+          return product;
+        }
+
+        return {
+          ...product,
+          quantityInStock:
+            product.quantityInStock - quantitySold,
+        };
+      }),
+    );
+  }
+
+  // Save the transaction to the existing sales/expenses state.
+  setTransactions((current) => [
+    newTransaction,
+    ...current,
+  ]);
+
+  if (newTransaction.kind === "sale") {
+    setReceiptTransaction(newTransaction);
+
+    setSaleLines([
+      { productId: "", quantity: 1 },
+    ]);
+  }
+
+  setDialogKind(null);
+} 
 function addProduct(event: FormEvent<HTMLFormElement>) {
   event.preventDefault();
 
