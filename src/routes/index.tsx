@@ -1441,7 +1441,17 @@ setDialogKind(null);
                     maxLength={80}
                   />
                 </label>
-
+              {dialogKind === "sale" && (
+  <label>
+    Customer name (optional)
+    <input
+      name="customerName"
+      type="text"
+      placeholder="e.g. Adebayo John"
+      maxLength={80}
+    />
+  </label>
+)}
                 <label>
                   Amount (₦)
                   <input
