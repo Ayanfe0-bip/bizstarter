@@ -1747,7 +1747,12 @@ Record how much a customer owes your business.
           <span>Status</span>
           <strong>Sale recorded</strong>
         </div>
-
+        <div className="receipt-row">
+  <span>Customer</span>
+  <strong>
+    {receiptTransaction?.customerName?.trim() || "Walk-in customer"}
+  </strong>
+</div>
         <div className="receipt-total">
           <span>Total</span>
           <strong>
