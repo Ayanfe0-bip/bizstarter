@@ -187,6 +187,11 @@ function getToday() {
   return `${year}-${month}-${day}`;
 }
 function downloadReceiptPdf(transaction: Transaction) {
+  const profile = getBusinessProfile();
+
+  const businessName =
+    profile.businessName.trim() || "BizStarter Business";
+
   const receiptNumber = `BS-${transaction.id.slice(-8).toUpperCase()}`;
   const customerName =
     transaction.customerName?.trim() || "Walk-in customer";
@@ -194,21 +199,6 @@ function downloadReceiptPdf(transaction: Transaction) {
   const amount = `NGN ${transaction.amount.toLocaleString("en-NG")}`;
 
   const description = transaction.description || "Sale";
-  const descriptionLines =
-    description.match(/.{1,50}/g) || ["Sale"];
-
-  const lines = [
-    { text: "BizStarter", size: 22 },
-    { text: "SALES RECEIPT", size: 14 },
-    { text: `Receipt number: ${receiptNumber}`, size: 11 },
-    { text: `Date: ${formatDate(transaction.date)}`, size: 11 },
-    { text: `Customer: ${customerName}`, size: 11 },
-    { text: "Item purchased:", size: 11 },
-    ...descriptionLines.map((text) => ({ text, size: 11 })),
-    { text: `Total: ${amount}`, size: 16 },
-    { text: "Thank you for supporting our business.", size: 11 },
-    { text: "Created with BizStarter - Ayanfe Innovation Labs Limited", size: 9 },
-  ];
 
   const escapePdfText = (text: string) =>
     text
@@ -217,24 +207,144 @@ function downloadReceiptPdf(transaction: Transaction) {
       .replace(/\(/g, "\\(")
       .replace(/\)/g, "\\)");
 
-  let y = 790;
+  const wrapText = (text: string, maxLength: number) => {
+    const words = text.split(/\s+/);
+    const result: string[] = [];
+    let current = "";
 
-  const content = lines
-    .map((line) => {
-      const command =
-        `BT /F1 ${line.size} Tf 50 ${y} Td ` +
-        `(${escapePdfText(line.text)}) Tj ET`;
-      y -= line.size === 22 ? 38 : line.size === 16 ? 34 : 25;
-      return command;
-    })
-    .join("\n");
+    for (const word of words) {
+      if ((current + " " + word).trim().length > maxLength && current) {
+        result.push(current);
+        current = word;
+      } else {
+        current = current ? `${current} ${word}` : word;
+      }
+    }
+
+    if (current) result.push(current);
+
+    return result.length ? result : [""];
+  };
+
+  const commands: string[] = [];
+
+  const text = (
+    value: string,
+    x: number,
+    y: number,
+    size: number,
+    color = "0.12 0.20 0.16",
+    bold = false,
+  ) => {
+    commands.push(
+      `${color} rg BT /${bold ? "F2" : "F1"} ${size} Tf ${x} ${y} Td (${escapePdfText(value)}) Tj ET`,
+    );
+  };
+
+  const line = (
+    x1: number,
+    y1: number,
+    x2: number,
+    y2: number,
+    color = "0.84 0.90 0.86",
+  ) => {
+    commands.push(
+      `${color} RG 0.8 w ${x1} ${y1} m ${x2} ${y2} l S`,
+    );
+  };
+
+  const rectangle = (
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    color: string,
+  ) => {
+    commands.push(
+      `${color} rg ${x} ${y} ${width} ${height} re f`,
+    );
+  };
+
+  // Green business header
+  rectangle(0, 700, 595, 142, "0.07 0.34 0.23");
+
+  text(businessName, 42, 794, 22, "1 1 1", true);
+
+  if (profile.phone.trim()) {
+    text(`Phone: ${profile.phone.trim()}`, 42, 770, 10, "1 1 1");
+  }
+
+  if (profile.email.trim()) {
+    text(`Email: ${profile.email.trim()}`, 42, 753, 10, "1 1 1");
+  }
+
+  if (profile.address.trim()) {
+    const addressLines = wrapText(profile.address.trim(), 75);
+
+    addressLines.slice(0, 2).forEach((addressLine, index) => {
+      text(addressLine, 42, 736 - index * 13, 9, "1 1 1");
+    });
+  }
+
+  // Receipt heading and reference
+  text("SALES RECEIPT", 42, 666, 18, "0.07 0.34 0.23", true);
+  text(`Receipt No: ${receiptNumber}`, 42, 641, 10);
+  text(`Date: ${formatDate(transaction.date)}`, 350, 641, 10);
+
+  line(42, 621, 553, 621);
+
+  // Customer section
+  text("CUSTOMER DETAILS", 42, 595, 10, "0.07 0.34 0.23", true);
+  text("Customer", 42, 570, 10, "0.38 0.43 0.40");
+  text(customerName, 160, 570, 11, "0.12 0.20 0.16", true);
+
+  line(42, 550, 553, 550);
+
+  // Purchased item section
+  text("ITEM DETAILS", 42, 524, 10, "0.07 0.34 0.23", true);
+  text("Description", 42, 499, 10, "0.38 0.43 0.40");
+
+  const descriptionLines = wrapText(description, 48).slice(0, 4);
+  let descriptionY = 499;
+
+  descriptionLines.forEach((descriptionLine, index) => {
+    text(descriptionLine, 160, descriptionY - index * 17, 10);
+  });
+
+  const totalBoxY = Math.max(370, descriptionY - descriptionLines.length * 17 - 35);
+
+  line(42, totalBoxY + 12, 553, totalBoxY + 12);
+
+  // Highlighted total
+  rectangle(42, totalBoxY - 53, 511, 53, "0.91 0.97 0.93");
+
+  text("TOTAL PAID", 58, totalBoxY - 22, 11, "0.07 0.34 0.23", true);
+  text(amount, 350, totalBoxY - 31, 18, "0.07 0.34 0.23", true);
+
+  // Thank-you and product branding
+  text(
+    "Thank you for your patronage!",
+    42,
+    totalBoxY - 94,
+    12,
+    "0.07 0.34 0.23",
+    true,
+  );
+
+  line(42, 105, 553, 105);
+
+  text("Powered by BizStarter", 42, 82, 10, "0.07 0.34 0.23", true);
+  text("Ayanfe Innovation Labs Limited", 42, 65, 9, "0.38 0.43 0.40");
+
+  const content = commands.join("\n");
 
   const objects = [
     "<< /Type /Catalog /Pages 2 0 R >>",
     "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
-    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R /F2 6 0 R >> >> /Contents 5 0 R >>",
     "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
     `<< /Length ${new TextEncoder().encode(content).length} >>\nstream\n${content}\nendstream`,
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>",
   ];
 
   let pdf = "%PDF-1.4\n";
@@ -264,6 +374,7 @@ function downloadReceiptPdf(transaction: Transaction) {
 
   link.href = url;
   link.download = `BizStarter-Receipt-${receiptNumber}.pdf`;
+
   document.body.appendChild(link);
   link.click();
   link.remove();
