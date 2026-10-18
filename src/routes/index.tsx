@@ -751,6 +751,10 @@ if (dialogKind !== "sale" && dialogKind !== "expense") return;
 const formData = new FormData(event.currentTarget);
 
 const description = String(formData.get("description") ?? "").trim();
+   const customerName =
+  dialogKind === "sale"
+    ? String(formData.get("customerName") ?? "").trim()
+    : "";       
 const amount = Number(formData.get("amount"));
 const date = String(formData.get("date") ?? "");
 
