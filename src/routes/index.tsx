@@ -160,7 +160,90 @@ function getToday() {
 
   return `${year}-${month}-${day}`;
 }
+function downloadReceiptPdf(transaction: Transaction) {
+  const receiptNumber = `BS-${transaction.id.slice(-8).toUpperCase()}`;
+  const customerName =
+    transaction.customerName?.trim() || "Walk-in customer";
 
+  const amount = `NGN ${transaction.amount.toLocaleString("en-NG")}`;
+
+  const description = transaction.description || "Sale";
+  const descriptionLines =
+    description.match(/.{1,50}/g) || ["Sale"];
+
+  const lines = [
+    { text: "BizStarter", size: 22 },
+    { text: "SALES RECEIPT", size: 14 },
+    { text: `Receipt number: ${receiptNumber}`, size: 11 },
+    { text: `Date: ${formatDate(transaction.date)}`, size: 11 },
+    { text: `Customer: ${customerName}`, size: 11 },
+    { text: "Item purchased:", size: 11 },
+    ...descriptionLines.map((text) => ({ text, size: 11 })),
+    { text: `Total: ${amount}`, size: 16 },
+    { text: "Thank you for supporting our business.", size: 11 },
+    { text: "Created with BizStarter - Ayanfe Innovation Labs Limited", size: 9 },
+  ];
+
+  const escapePdfText = (text: string) =>
+    text
+      .replace(/[^\x20-\x7E]/g, "?")
+      .replace(/\\/g, "\\\\")
+      .replace(/\(/g, "\\(")
+      .replace(/\)/g, "\\)");
+
+  let y = 790;
+
+  const content = lines
+    .map((line) => {
+      const command =
+        `BT /F1 ${line.size} Tf 50 ${y} Td ` +
+        `(${escapePdfText(line.text)}) Tj ET`;
+      y -= line.size === 22 ? 38 : line.size === 16 ? 34 : 25;
+      return command;
+    })
+    .join("\n");
+
+  const objects = [
+    "<< /Type /Catalog /Pages 2 0 R >>",
+    "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
+    "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>",
+    "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+    `<< /Length ${new TextEncoder().encode(content).length} >>\nstream\n${content}\nendstream`,
+  ];
+
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+
+  objects.forEach((object, index) => {
+    offsets.push(pdf.length);
+    pdf += `${index + 1} 0 obj\n${object}\nendobj\n`;
+  });
+
+  const xrefOffset = pdf.length;
+
+  pdf += `xref\n0 ${objects.length + 1}\n`;
+  pdf += "0000000000 65535 f \n";
+
+  offsets.slice(1).forEach((offset) => {
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  });
+
+  pdf +=
+    `trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\n` +
+    `startxref\n${xrefOffset}\n%%EOF`;
+
+  const blob = new Blob([pdf], { type: "application/pdf" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+
+  link.href = url;
+  link.download = `BizStarter-Receipt-${receiptNumber}.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
 function isValidTransaction(value: unknown): value is Transaction {
   if (!value || typeof value !== "object") return false;
 
