@@ -496,16 +496,18 @@ const [
               : { ...item, id: crypto.randomUUID() },
           );
 
+        
         const cloudTransactions: Transaction[] =
-          (transactionsResult.data ?? []).map((row) => ({
-            id: row.id,
-            kind: row.kind as TransactionKind,
-            description: row.description,
-            amount: Number(row.amount),
-            category: row.category,
-            date: row.transaction_date,
-          }));
-          const cloudProducts: Product[] =
+  (transactionsResult.data ?? []).map((row) => ({
+    id: row.id,
+    kind: row.kind as TransactionKind,
+    description: row.description,
+    customerName: row.customer_name ?? "",
+    amount: Number(row.amount),
+    category: row.category,
+    date: row.transaction_date,
+  }));
+        const cloudProducts: Product[] =
   (productsResult.data ?? []).map((row) => ({
     id: row.id,
     name: row.name,
