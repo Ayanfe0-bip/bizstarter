@@ -2943,7 +2943,7 @@ function DebtsPage({
   );
 }
       
-function ReportsPmetrics-grid">
+function Reportspage({
         <MetricCard
           label="Recorded sales"
           value={formatMoney(sales)}
