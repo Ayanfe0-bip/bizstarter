@@ -1681,20 +1681,91 @@ Record how much a customer owes your business.
         </>
       ) : null}
         </DialogContent>
-      </Dialog>
-    </div>
-  );
+      </Dialog>  <Dialog
+    open={receiptTransaction !== null}
+    onOpenChange={(open) => {
+      if (!open) setReceiptTransaction(null);
+    }}
+  >
+    <DialogContent className="receipt-dialog">
+      <div className="receipt-paper" id="bizstarter-print-receipt">
+        <div className="receipt-brand">
+          <span className="receipt-brand-mark">
+            <BrandMark />
+          </span>
+          <span>BizStarter</span>
+        </div>
+
+        <p className="receipt-kicker">SALES RECEIPT</p>
+        <h2>Thank you for your purchase</h2>
+        <p className="receipt-business">My business</p>
+
+        <div className="receipt-number">
+          <span>Receipt number</span>
+          <strong>
+            BS-{receiptTransaction?.id.slice(-8).toUpperCase()}
+          </strong>
+        </div>
+
+        <div className="receipt-divider" />
+
+        <div className="receipt-row">
+          <span>Date</span>
+          <strong>
+            {receiptTransaction
+              ? formatDate(receiptTransaction.date)
+              : ""}
+          </strong>
+        </div>
+
+        <div className="receipt-row">
+          <span>Description</span>
+          <strong className="receipt-description">
+            {receiptTransaction?.description}
+          </strong>
+        </div>
+
+        <div className="receipt-row">
+          <span>Status</span>
+          <strong>Sale recorded</strong>
+        </div>
+
+        <div className="receipt-total">
+          <span>Total</span>
+          <strong>
+            {formatMoney(receiptTransaction?.amount ?? 0)}
+          </strong>
+        </div>
+
+        <p className="receipt-thanks">
+          Thank you for supporting our business.
+        </p>
+
+        <p className="receipt-powered">
+          Created with BizStarter · Ayanfe Innovation Labs Limited
+        </p>
+      </div>
+
+      <div className="receipt-actions">
+        <Button
+          variant="outline"
+          onClick={() => setReceiptTransaction(null)}
+        >
+          Close
+        </Button>
+
+        <Button onClick={() => window.print()}>
+          <Download /> Print / Save PDF
+        </Button>
+      </div>
+    </DialogContent>
+  </Dialog>
+</div>
+
+);
 }
 
-function BrandMark() {
-  return (
-    <span className="brand-mark" aria-hidden="true">
-      <span />
-      <span />
-      <span />
-    </span>
-  );
-}
+function BrandMark() {2
 
 function DashboardPreview({
   salesTotal,
