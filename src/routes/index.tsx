@@ -2384,12 +2384,10 @@ function DashboardPage({
             </span>
           </div>
 
-          <MiniChart />
-          <p className="mt-3 text-xs leading-5 text-slate-500">
-            The chart is illustrative and is not yet calculated from your
-            individual daily sales.
-          </p>
-        </div>
+         <MiniChart transactions={transactions} />
+<p className="mt-3 text-xs leading-5 text-slate-500">
+  This chart uses your recorded sales for each day of the current week.
+</p>
 
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
           <div className="mb-5">
@@ -2506,17 +2504,84 @@ function MetricCard({
   );
 }
 
-function MiniChart({ compact = false }: { compact?: boolean }) {
+function MiniChart({
+  transactions,
+  compact = false,
+}: {
+  transactions: Transaction[];
+  compact?: boolean;
+}) {
+  const today = new Date();
+
+  // Find Monday of the current week.
+  const monday = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate(),
+  );
+
+  const dayOffset = (monday.getDay() + 6) % 7;
+  monday.setDate(monday.getDate() - dayOffset);
+
+  // Prepare Monday to Sunday, initially with zero sales.
+  const days = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(monday);
+    date.setDate(monday.getDate() + index);
+
+    return {
+      label: date.toLocaleDateString("en-GB", {
+        weekday: "short",
+      }),
+      dateKey: [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, "0"),
+        String(date.getDate()).padStart(2, "0"),
+      ].join("-"),
+      amount: 0,
+    };
+  });
+
+  // Add up actual recorded sales for each day.
+  transactions.forEach((transaction) => {
+    if (transaction.kind !== "sale") return;
+
+    const dateKey = String(transaction.date).slice(0, 10);
+
+    const day = days.find((item) => item.dateKey === dateKey);
+
+    if (day) {
+      day.amount += Number(transaction.amount) || 0;
+    }
+  });
+
+  const maxSales = Math.max(...days.map((day) => day.amount), 0);
+  const chartMaximum = maxSales > 0 ? maxSales : 1000;
+
+  const moneyLabel = (amount: number) => {
+    if (amount >= 1_000_000) {
+      return `₦${(amount / 1_000_000).toFixed(1)}m`;
+    }
+
+    if (amount >= 1000) {
+      return `₦${(amount / 1000).toFixed(0)}k`;
+    }
+
+    return `₦${Math.round(amount).toLocaleString("en-NG")}`;
+  };
+
+  const hasSales = days.some((day) => day.amount > 0);
+
   return (
     <div
       className={`mini-chart ${compact ? "compact" : ""}`}
-      aria-label="Illustrative sales chart, Monday to Sunday"
+      aria-label="Actual recorded sales from Monday to Sunday"
     >
       <div className="chart-scale">
-        <span>₦200k</span>
-        <span>₦150k</span>
-        <span>₦100k</span>
-        <span>₦50k</span>
+        {[1, 0.75, 0.5, 0.25].map((fraction) => (
+          <span key={fraction}>
+            {moneyLabel(chartMaximum * fraction)}
+          </span>
+        ))}
       </div>
 
       <div className="chart-plot">
@@ -2528,19 +2593,75 @@ function MiniChart({ compact = false }: { compact?: boolean }) {
         </div>
 
         <div className="chart-columns">
-          {chartData.map((item, index) => (
-            <div className="chart-day" key={item.label}>
-              <div className="chart-bar-track">
-                <span className={`chart-bar bar-${index + 1}`} />
+          {days.map((day, index) => {
+            const height =
+              day.amount > 0
+                ? Math.max((day.amount / chartMaximum) * 100, 3)
+                : 0;
+
+            const isToday =
+              day.dateKey ===
+              [
+                today.getFullYear(),
+                String(today.getMonth() + 1).padStart(2, "0"),
+                String(today.getDate()).padStart(2, "0"),
+              ].join("-");
+
+            return (
+              <div className="chart-day" key={day.dateKey}>
+                <div
+                  className="chart-bar-track"
+                  title={`${day.label}: ${moneyLabel(day.amount)}`}
+                >
+                  <span
+                    className={`chart-bar bar-${index + 1}`}
+                    style={{
+                      height: `${height}%`,
+                      opacity: day.amount > 0 ? 1 : 0.15,
+                    }}
+                  />
+                </div>
+
+                <span
+                  className="chart-day-label"
+                  style={{
+                    fontWeight: isToday ? 700 : 400,
+                  }}
+                >
+                  {day.label}
+                </span>
               </div>
-              <span className="chart-day-label">{item.label}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
+      </div>
+
+      <div
+        style={{
+          marginTop: 12,
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 8,
+          flexWrap: "wrap",
+          fontSize: 12,
+          color: "#64748b",
+        }}
+      >
+        <span>
+          {hasSales
+            ? "Total sales this week"
+            : "No sales recorded this week"}
+        </span>
+
+        <strong style={{ color: "#087443" }}>
+          {moneyLabel(
+            days.reduce((total, day) => total + day.amount, 0),
+          )}
+        </strong>
       </div>
     </div>
   );
-}
+      }
 
 function TransactionTable({
   transactions,
