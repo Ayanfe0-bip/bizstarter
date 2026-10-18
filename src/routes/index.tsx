@@ -2943,237 +2943,8 @@ function DebtsPage({
   );
 }
       
-function Reportspage({
-          value={formatMoney(sales)}
-          detail={`${salesTransactions.length} sale(s) in this period`}
-          icon={<TrendingUp size={19} />}
-          tone="green"
-        />
 
-        <MetricCard
-          label="Recorded expenses"
-          value={formatMoney(expenses)}
-          detail={`${expenseTransactions.length} expense(s) in this period`}
-          icon={<Receipt size={19} />}
-          tone="amber"
-        />
-
-        <MetricCard
-          label="Estimated profit"
-          value={formatMoney(profit)}
-          detail="Sales minus recorded expenses"
-          icon={<Wallet size={19} />}
-          tone={profit >= 0 ? "blue" : "amber"}
-        />
-      </div>
-
-      <div className="content-panel">
-        <div className="panel-heading">
-          <div>
-            <h2>Sales trend</h2>
-            <p>Actual recorded sales for the last seven days.</p>
-          </div>
-        </div>
-
-        {salesTransactions.length === 0 ? (
-          <EmptyState
-            icon={<BarChart3 size={24} />}
-            title="No sales recorded"
-            description="Record sales to see your actual sales trend here."
-          />
-        ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
-              gap: 10,
-              padding: "16px 12px 22px",
-              alignItems: "end",
-            }}
-          >
-            {salesByDay.map((day) => (
-              <div
-                key={day.label}
-                style={{
-                  display: "grid",
-                  gap: 9,
-                  textAlign: "center",
-                  minWidth: 0,
-                }}
-              >
-                <strong
-                  style={{
-                    fontSize: 10,
-                    overflowWrap: "anywhere",
-                  }}
-                >
-                  {day.amount > 0
-                    ? formatMoney(day.amount)
-                    : "₦0"}
-                </strong>
-
-                <div
-                  style={{
-                    height: 150,
-                    display: "flex",
-                    alignItems: "end",
-                    justifyContent: "center",
-                    borderBottom: "1px solid var(--border)",
-                  }}
-                >
-                  <div
-                    title={`${day.label}: ${formatMoney(day.amount)}`}
-                    style={{
-                      width: "70%",
-                      maxWidth: 44,
-                      minHeight: day.amount > 0 ? 5 : 0,
-                      height: `${(day.amount / highestDailySales) * 100}%`,
-                      background: "var(--primary)",
-                      borderRadius: "6px 6px 0 0",
-                    }}
-                  />
-                </div>
-
-                <span style={{ fontSize: 12 }}>{day.label}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="content-panel">
-        <div className="panel-heading">
-          <div>
-            <h2>Expense breakdown</h2>
-            <p>Where your recorded business spending goes.</p>
-          </div>
-        </div>
-
-        {expenseBreakdown.length === 0 ? (
-          <EmptyState
-            icon={<Receipt size={24} />}
-            title="No expenses recorded"
-            description="Record business expenses to see the breakdown."
-          />
-        ) : (
-          <div className="report-summary">
-            {expenseBreakdown.map(([category, amount]) => (
-              <div className="report-summary-row" key={category}>
-                <span>{category}</span>
-                <strong>{formatMoney(amount)}</strong>
-              </div>
-            ))}
-
-            <div className="report-summary-row total">
-              <span>Total expenses</span>
-              <strong>{formatMoney(expenses)}</strong>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="content-panel">
-        <div className="panel-heading">
-          <div>
-            <h2>Business health</h2>
-            <p>Additional figures from your existing business records.</p>
-          </div>
-        </div>
-
-        <div className="metrics-grid">
-          <MetricCard
-            label="Outstanding customer debts"
-            value={formatMoney(outstandingDebts)}
-            detail="Unpaid customer balances"
-            icon={<Wallet size={19} />}
-            tone={outstandingDebts > 0 ? "amber" : "green"}
-          />
-
-          <MetricCard
-            label="Inventory cost value"
-            value={formatMoney(stockValue)}
-            detail="Stock quantity multiplied by recorded cost price"
-            icon={<ShoppingBag size={19} />}
-            tone="blue"
-          />
-
-          <MetricCard
-            label="Low-stock products"
-            value={String(lowStockProducts.length)}
-            detail="Products at or below their stock threshold"
-            icon={<Info size={19} />}
-            tone={lowStockProducts.length > 0 ? "amber" : "green"}
-          />
-        </div>
-
-        {lowStockProducts.length > 0 && (
-          <div className="report-summary">
-            <div className="report-summary-row total">
-              <span>Products needing restocking</span>
-              <strong>{lowStockProducts.length}</strong>
-            </div>
-
-            {lowStockProducts.map((product) => (
-              <div className="report-summary-row" key={product.id}>
-                <span>
-                  {product.name} — {product.quantityInStock} left
-                </span>
-                <strong>
-                  Threshold: {product.lowStockThreshold}
-                </strong>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="content-panel">
-        <div className="panel-heading">
-          <div>
-            <h2>Recorded transactions</h2>
-            <p>Entries included in the selected reporting period.</p>
-          </div>
-        </div>
-
-        {filteredTransactions.length === 0 ? (
-          <EmptyState
-            icon={<FileText size={24} />}
-            title="No records for this period"
-            description="Record sales and expenses to build your report."
-          />
-        ) : (
-          <div className="table-scroll">
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Description</th>
-                  <th>Category</th>
-                  <th>Type</th>
-                  <th>Amount</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {[...filteredTransactions]
-                  .sort((a, b) =>
-                    b.date.localeCompare(a.date),
-                  )
-                  .map((transaction) => (
-                    <tr key={transaction.id}>
-                      <td>{formatDate(transaction.date)}</td>
-                      <td>
-                        <strong>{transaction.description}</strong>
-                      </td>
-                      <td>{transaction.category}</td>
-                      <td>
-                        <span
-                          className={`status-badge ${
-                            transaction.kind === "sale"
-                              ? "status-paid"
-                              : "status-pending"
-                          }`}
-              function ReportsPage({
+function ReportsPage({
   transactions,
   debts,
   products,
@@ -3186,56 +2957,48 @@ function Reportspage({
     "month",
   );
 
-  const today = new Date();
-  const startDate = new Date(today);
-  startDate.setHours(0, 0, 0, 0);
+  const now = new Date();
+  const start = new Date(now);
+  start.setHours(0, 0, 0, 0);
 
   if (period === "week") {
-    const day = (startDate.getDay() + 6) % 7;
-    startDate.setDate(startDate.getDate() - day);
+    start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
   } else if (period === "month") {
-    startDate.setDate(1);
+    start.setDate(1);
   } else {
-    startDate.setMonth(0, 1);
+    start.setMonth(0, 1);
   }
 
-  const filteredTransactions = transactions.filter((transaction) => {
-    if (!transaction.date) return false;
+  const filtered = transactions.filter((item) => {
+    if (!item.date) return false;
 
-    const date = new Date(
-      `${transaction.date.slice(0, 10)}T12:00:00`,
-    );
+    const date = new Date(`${item.date.slice(0, 10)}T12:00:00`);
 
     return (
       !Number.isNaN(date.getTime()) &&
-      date >= startDate &&
-      date <= today
+      date >= start &&
+      date <= now
     );
   });
 
-  const salesTransactions = filteredTransactions.filter(
-    (transaction) => transaction.kind === "sale",
-  );
+  const sales = filtered.filter((item) => item.kind === "sale");
+  const expenses = filtered.filter((item) => item.kind === "expense");
 
-  const expenseTransactions = filteredTransactions.filter(
-    (transaction) => transaction.kind === "expense",
-  );
-
-  const sales = salesTransactions.reduce(
-    (total, transaction) => total + Number(transaction.amount || 0),
+  const totalSales = sales.reduce(
+    (sum, item) => sum + Number(item.amount || 0),
     0,
   );
 
-  const expenses = expenseTransactions.reduce(
-    (total, transaction) => total + Number(transaction.amount || 0),
+  const totalExpenses = expenses.reduce(
+    (sum, item) => sum + Number(item.amount || 0),
     0,
   );
 
-  const profit = sales - expenses;
+  const profit = totalSales - totalExpenses;
 
-  const outstandingDebt = debts.reduce(
-    (total, debt) =>
-      total +
+  const totalDebt = debts.reduce(
+    (sum, debt) =>
+      sum +
       Math.max(
         0,
         Number(debt.amountOwed || 0) -
@@ -3245,29 +3008,18 @@ function Reportspage({
   );
 
   const stockValue = products.reduce(
-    (total, product) =>
-      total +
+    (sum, product) =>
+      sum +
       Number(product.costPrice || 0) *
         Number(product.quantityInStock || 0),
     0,
   );
 
-  const lowStockProducts = products.filter(
+  const lowStock = products.filter(
     (product) =>
       Number(product.quantityInStock || 0) <=
       Number(product.lowStockThreshold || 0),
   );
-
-  const expenseBreakdown = expenseTransactions.reduce<
-    Record<string, number>
-  >((groups, transaction) => {
-    const category = transaction.category || "Other";
-
-    groups[category] =
-      (groups[category] || 0) + Number(transaction.amount || 0);
-
-    return groups;
-  }, {});
 
   return (
     <section className="page-section">
@@ -3275,9 +3027,7 @@ function Reportspage({
         <div>
           <p className="eyebrow">BUSINESS PERFORMANCE</p>
           <h1>Reports & Insights</h1>
-          <p>
-            Understand your recorded sales, expenses, debts, and stock.
-          </p>
+          <p>Review your business performance and outstanding balances.</p>
         </div>
       </div>
 
@@ -3296,9 +3046,9 @@ function Reportspage({
             onClick={() => setPeriod(option)}
             aria-pressed={period === option}
             style={{
-              border: "1px solid var(--border)",
+              padding: "10px 16px",
               borderRadius: 10,
-              padding: "9px 14px",
+              border: "1px solid var(--border)",
               background:
                 period === option ? "var(--primary)" : "white",
               color: period === option ? "white" : "var(--text)",
@@ -3318,16 +3068,16 @@ function Reportspage({
       <div className="metrics-grid">
         <MetricCard
           title="Recorded sales"
-          amount={sales}
-          detail={`${salesTransactions.length} sales in this period`}
+          amount={totalSales}
+          detail={`${sales.length} sales in this period`}
           icon={<TrendingUp size={19} />}
           color="green"
         />
 
         <MetricCard
           title="Recorded expenses"
-          amount={expenses}
-          detail={`${expenseTransactions.length} expenses in this period`}
+          amount={totalExpenses}
+          detail={`${expenses.length} expenses in this period`}
           icon={<Receipt size={19} />}
           color="amber"
         />
@@ -3342,61 +3092,26 @@ function Reportspage({
 
         <MetricCard
           title="Outstanding debts"
-          amount={outstandingDebt}
+          amount={totalDebt}
           detail="Unpaid customer balances"
           icon={<HandCoins size={19} />}
           color="amber"
         />
-      </div>
 
-      <div className="content-panel" style={{ marginTop: 20 }}>
-        <div className="panel-heading">
-          <div>
-            <h2>Expense breakdown</h2>
-            <p>Expenses grouped by category for the selected period.</p>
-          </div>
-        </div>
-
-        {Object.keys(expenseBreakdown).length === 0 ? (
-          <EmptyState
-            icon={<Receipt size={24} />}
-            title="No expenses in this period"
-            description="Recorded expenses will appear here."
-          />
-        ) : (
-          <div className="report-summary">
-            {Object.entries(expenseBreakdown)
-              .sort((a, b) => b[1] - a[1])
-              .map(([category, amount]) => (
-                <div className="report-summary-row" key={category}>
-                  <span>{category}</span>
-                  <strong>{formatMoney(amount)}</strong>
-                </div>
-              ))}
-
-            <div className="report-summary-row total">
-              <span>Total expenses</span>
-              <strong>{formatMoney(expenses)}</strong>
-            </div>
-          </div>
-        )}
-      </div>
-
-      <div className="metrics-grid" style={{ marginTop: 20 }}>
         <MetricCard
           title="Inventory cost value"
           amount={stockValue}
-          detail="Cost price multiplied by quantity in stock"
+          detail="Cost price multiplied by stock quantity"
           icon={<ShoppingBag size={19} />}
           color="green"
         />
 
         <MetricCard
           title="Low-stock products"
-          amount={lowStockProducts.length}
+          amount={lowStock.length}
           detail="Products at or below their stock threshold"
           icon={<Info size={19} />}
-          color={lowStockProducts.length > 0 ? "amber" : "blue"}
+          color={lowStock.length > 0 ? "amber" : "blue"}
         />
       </div>
 
@@ -3408,7 +3123,7 @@ function Reportspage({
           </div>
         </div>
 
-        {lowStockProducts.length === 0 ? (
+        {lowStock.length === 0 ? (
           <EmptyState
             icon={<CheckCircle2 size={24} />}
             title="No low-stock products"
@@ -3420,17 +3135,14 @@ function Reportspage({
               <thead>
                 <tr>
                   <th>Product</th>
-                  <th>In stock</th>
+                  <th>Quantity remaining</th>
                   <th>Stock threshold</th>
                 </tr>
               </thead>
-
               <tbody>
-                {lowStockProducts.map((product) => (
+                {lowStock.map((product) => (
                   <tr key={product.sku || product.name}>
-                    <td>
-                      <strong>{product.name}</strong>
-                    </td>
+                    <td>{product.name}</td>
                     <td>{product.quantityInStock}</td>
                     <td>{product.lowStockThreshold}</td>
                   </tr>
@@ -3445,15 +3157,15 @@ function Reportspage({
         <div className="panel-heading">
           <div>
             <h2>Recorded transactions</h2>
-            <p>Transactions included in the selected period.</p>
+            <p>Sales and expenses for the selected period.</p>
           </div>
         </div>
 
-        {filteredTransactions.length === 0 ? (
+        {filtered.length === 0 ? (
           <EmptyState
             icon={<FileText size={24} />}
-            title="No transactions in this period"
-            description="Record sales and expenses to see them here."
+            title="No transactions for this period"
+            description="Record sales and expenses to populate your reports."
           />
         ) : (
           <div className="table-scroll">
@@ -3467,26 +3179,19 @@ function Reportspage({
                   <th>Amount</th>
                 </tr>
               </thead>
-
               <tbody>
-                {[...filteredTransactions]
+                {[...filtered]
                   .sort((a, b) => b.date.localeCompare(a.date))
-                  .map((transaction) => (
-                    <tr key={transaction.id}>
+                  .map((item) => (
+                    <tr key={item.id}>
+                      <td>{formatDate(item.date.slice(0, 10))}</td>
+                      <td>{item.description}</td>
+                      <td>{item.category}</td>
                       <td>
-                        {formatDate(transaction.date.slice(0, 10))}
-                      </td>
-                      <td>{transaction.description}</td>
-                      <td>{transaction.category}</td>
-                      <td>
-                        {transaction.kind === "sale"
-                          ? "Sale"
-                          : "Expense"}
+                        {item.kind === "sale" ? "Sale" : "Expense"}
                       </td>
                       <td>
-                        <strong>
-                          {formatMoney(Number(transaction.amount || 0))}
-                        </strong>
+                        <strong>{formatMoney(Number(item.amount || 0))}</strong>
                       </td>
                     </tr>
                   ))}
@@ -3497,8 +3202,7 @@ function Reportspage({
       </div>
     </section>
   );
-    }
-
+}
 function SettingsPage({
   onSignOut,
 }: {
