@@ -2390,7 +2390,7 @@ function DashboardPage({
             This chart uses your recorded sales for each day of the current week.
           </p>
         </div>
-
+                  <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6"> 
                   <div className="mb-5">
             <h2 className="text-lg font-bold text-[#172B3A]">
               Recent transactions
@@ -2399,7 +2399,7 @@ function DashboardPage({
               Your latest recorded sales and expenses.
             </p>
           </div>
-
+                
           {recent.length > 0 ? (
             <div className="space-y-1">
               {recent.map((item) => (
