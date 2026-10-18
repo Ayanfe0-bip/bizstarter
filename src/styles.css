@@ -164,3 +164,242 @@
   .landing-header { padding: 0 14px; }.header-cta { font-size: 9px; padding: 0 8px; }.brand-lockup { font-size: 15px; }.hero-copy h1 { font-size: 40px; }.hero-actions .h-10 { padding: 0 10px; }.workspace-topbar { padding: 0 9px; }.topbar-actions { gap: 1px; }.sample-badge { padding: 4px 5px; }.breadcrumbs { font-size: 8px; }.workspace-content { padding-left: 12px; padding-right: 12px; }.metric-card { padding: 9px 8px; }.metric-card-top { font-size: 8px; }.metric-value { font-size: 16px; }.metric-detail { font-size: 7px; }.debt-summary-count { max-width: 72px; text-align: center; }.landing-footer { padding-left: 14px; padding-right: 14px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; } }
+/* BizStarter printable sales receipt */
+.receipt-dialog {
+width: calc(100% - 24px) !important;
+max-width: 460px !important;
+max-height: calc(100dvh - 24px);
+overflow-y: auto;
+padding: 24px !important;
+border-radius: 12px !important;
+}
+
+.receipt-paper {
+background: #ffffff;
+color: #202820;
+padding: 8px 2px;
+font-family: Arial, sans-serif;
+}
+
+.receipt-brand {
+display: flex;
+align-items: center;
+gap: 10px;
+color: #176b45;
+font-size: 22px;
+font-weight: 800;
+}
+
+.receipt-brand-mark .brand-mark {
+width: 34px;
+height: 34px;
+}
+
+.receipt-kicker {
+margin: 25px 0 8px;
+color: #176b45;
+font-size: 11px;
+font-weight: 800;
+letter-spacing: 2px;
+}
+
+.receipt-paper h2 {
+margin: 0;
+font-size: 21px;
+line-height: 1.4;
+}
+
+.receipt-business {
+margin: 8px 0 20px;
+color: #59665c;
+font-size: 13px;
+}
+
+.receipt-number,
+.receipt-row,
+.receipt-total {
+display: flex;
+justify-content: space-between;
+align-items: flex-start;
+gap: 14px;
+padding: 12px 0;
+font-size: 12px;
+}
+
+.receipt-number span,
+.receipt-row span,
+.receipt-total span {
+color: #667168;
+}
+
+.receipt-number strong,
+.receipt-row strong,
+.receipt-total strong {
+text-align: right;
+overflow-wrap: anywhere;
+}
+
+.receipt-divider {
+border-top: 1px dashed #cbd5cc;
+}
+
+.receipt-description {
+max-width: 60%;
+}
+
+.receipt-total {
+margin-top: 10px;
+padding: 18px 14px;
+border-radius: 8px;
+background: #edf7ef;
+color: #176b45;
+font-size: 15px;
+}
+
+.receipt-total strong {
+font-size: 19px;
+}
+
+.receipt-thanks {
+margin: 24px 0 10px;
+text-align: center;
+font-size: 12px;
+}
+
+.receipt-powered {
+margin: 0;
+color: #718074;
+text-align: center;
+font-size: 10px;
+line-height: 1.6;
+}
+
+.receipt-actions {
+display: flex;
+justify-content: flex-end;
+gap: 10px;
+margin-top: 20px;
+}
+
+.receipt-actions button {
+min-height: 42px;
+}
+
+/* Mobile usability improvements */
+@media (max-width: 760px) {
+.entry-dialog,
+.receipt-dialog {
+width: calc(100% - 20px) !important;
+max-width: 460px !important;
+max-height: calc(100dvh - 20px);
+overflow-y: auto;
+padding: 18px !important;
+}
+
+.entry-form {
+gap: 15px;
+}
+
+.entry-form input,
+.entry-form select {
+min-height: 44px;
+font-size: 16px;
+}
+
+.form-submit {
+min-height: 44px;
+}
+
+.receipt-actions {
+flex-direction: column-reverse;
+}
+
+.receipt-actions button {
+width: 100%;
+min-height: 44px;
+}
+
+.listing-toolbar {
+flex-wrap: wrap;
+padding: 10px 0;
+}
+
+.search-control {
+min-width: 0;
+min-height: 40px;
+}
+
+.category-filter select {
+min-height: 40px;
+}
+
+.workspace-content {
+min-width: 0;
+}
+
+.content-panel {
+min-width: 0;
+}
+
+.table-scroll {
+max-width: 100%;
+overflow-x: auto;
+-webkit-overflow-scrolling: touch;
+}
+
+.workspace-content button,
+.workspace-topbar button {
+touch-action: manipulation;
+}
+}
+
+/* Print only the receipt, not the dashboard */
+@media print {
+@page {
+size: auto;
+margin: 12mm;
+}
+
+body * {
+visibility: hidden !important;
+}
+
+.receipt-dialog,
+.receipt-dialog * {
+visibility: visible !important;
+}
+
+.receipt-dialog {
+position: absolute !important;
+top: 0 !important;
+left: 0 !important;
+width: 100% !important;
+max-width: none !important;
+max-height: none !important;
+overflow: visible !important;
+margin: 0 !important;
+padding: 0 !important;
+transform: none !important;
+border: 0 !important;
+box-shadow: none !important;
+background: #ffffff !important;
+}
+
+.receipt-actions,
+.receipt-dialog [data-slot="dialog-close"] {
+display: none !important;
+}
+
+.receipt-paper {
+width: 100%;
+padding: 0;
+color: #000000;
+background: #ffffff;
+break-inside: avoid;
+}
+
+.receipt-total {
+print-color-adjust: exact;
+-webkit-print-color-adjust: exact;
+}
+}
