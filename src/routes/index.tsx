@@ -133,7 +133,33 @@ const featureCards = [
 const TRANSACTIONS_STORAGE_KEY_PREFIX = "bizstarter-transactions-v1";
 const DEBTS_STORAGE_KEY_PREFIX = "bizstarter-debts-v1";
 const PRODUCTS_STORAGE_KEY_PREFIX = "bizstarter-products-v1";
+type BusinessProfile = {
+  businessName: string;
+  phone: string;
+  address: string;
+  email: string;
+};
 
+const BUSINESS_PROFILE_STORAGE_KEY = "bizstarter-business-profile-v1";
+
+function getBusinessProfile(): BusinessProfile {
+  const fallback: BusinessProfile = {
+    businessName: "",
+    phone: "",
+    address: "",
+    email: "",
+  };
+
+  if (typeof window === "undefined") return fallback;
+
+  try {
+    const saved = localStorage.getItem(BUSINESS_PROFILE_STORAGE_KEY);
+
+    return saved ? { ...fallback, ...JSON.parse(saved) } : fallback;
+  } catch {
+    return fallback;
+  }
+}
 function formatMoney(value: number) {
   return new Intl.NumberFormat("en-NG", {
     style: "currency",
@@ -3010,37 +3036,192 @@ function SettingsPage({
 }: {
   onSignOut: () => Promise<void>;
 }) {
+  const [profile, setProfile] = useState<BusinessProfile>(
+    getBusinessProfile,
+  );
+
+  const [savedMessage, setSavedMessage] = useState("");
+
+  function updateProfile(
+    field: keyof BusinessProfile,
+    value: string,
+  ) {
+    setProfile((current) => ({
+      ...current,
+      [field]: value,
+    }));
+
+    setSavedMessage("");
+  }
+
+  function saveProfile(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    try {
+      localStorage.setItem(
+        BUSINESS_PROFILE_STORAGE_KEY,
+        JSON.stringify(profile),
+      );
+
+      setSavedMessage("Business profile saved successfully.");
+    } catch {
+      setSavedMessage(
+        "Could not save your profile. Please check your browser storage.",
+      );
+    }
+  }
+
   return (
     <div className="page-content">
       <PageHeading
         eyebrow="PREFERENCES"
         title="Settings"
-        description="Review your workspace information and how your records are stored."
+        description="Manage your business identity and workspace."
       />
-        <div className="mt-6">
-          <button
-            type="button"
-            className="primary-button"
-            onClick={() => void onSignOut()}
-          >
-            Sign Out
-          </button>
-        </div>
-      <div className="content-panel settings-panel">
-        <div className="settings-item">
-          <div className="settings-icon">
-            <Building2 size={20} />
-          </div>
 
-          <div className="settings-copy">
-            <h3>Business workspace</h3>
+      <div className="content-panel" style={{ padding: 20 }}>
+        <div className="panel-heading">
+          <div>
+            <h2>Business Profile</h2>
             <p>
-              Use BizStarter to organise your sales, expenses, customer
-              balances and business reports.
+              These details can identify your business on your sales
+              receipts.
             </p>
           </div>
+          <Building2 size={24} />
         </div>
 
+        <form onSubmit={saveProfile}>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+              gap: 16,
+            }}
+          >
+            <label style={{ display: "grid", gap: 7 }}>
+              <span>Business name *</span>
+              <input
+                type="text"
+                required
+                maxLength={100}
+                value={profile.businessName}
+                onChange={(event) =>
+                  updateProfile("businessName", event.target.value)
+                }
+                placeholder="e.g. Ayanfe Fashion Store"
+                style={{
+                  width: "100%",
+                  minHeight: 42,
+                  padding: "10px 12px",
+                  border: "1px solid var(--border)",
+                  borderRadius: 6,
+                  background: "var(--card)",
+                  color: "var(--foreground)",
+                }}
+              />
+            </label>
+
+            <label style={{ display: "grid", gap: 7 }}>
+              <span>Business phone number</span>
+              <input
+                type="tel"
+                maxLength={30}
+                value={profile.phone}
+                onChange={(event) =>
+                  updateProfile("phone", event.target.value)
+                }
+                placeholder="e.g. 08012345678"
+                style={{
+                  width: "100%",
+                  minHeight: 42,
+                  padding: "10px 12px",
+                  border: "1px solid var(--border)",
+                  borderRadius: 6,
+                  background: "var(--card)",
+                  color: "var(--foreground)",
+                }}
+              />
+            </label>
+
+            <label style={{ display: "grid", gap: 7 }}>
+              <span>Business email</span>
+              <input
+                type="email"
+                maxLength={150}
+                value={profile.email}
+                onChange={(event) =>
+                  updateProfile("email", event.target.value)
+                }
+                placeholder="you@example.com"
+                style={{
+                  width: "100%",
+                  minHeight: 42,
+                  padding: "10px 12px",
+                  border: "1px solid var(--border)",
+                  borderRadius: 6,
+                  background: "var(--card)",
+                  color: "var(--foreground)",
+                }}
+              />
+            </label>
+
+            <label style={{ display: "grid", gap: 7 }}>
+              <span>Business address</span>
+              <textarea
+                maxLength={250}
+                rows={3}
+                value={profile.address}
+                onChange={(event) =>
+                  updateProfile("address", event.target.value)
+                }
+                placeholder="Enter your business address"
+                style={{
+                  width: "100%",
+                  padding: "10px 12px",
+                  border: "1px solid var(--border)",
+                  borderRadius: 6,
+                  background: "var(--card)",
+                  color: "var(--foreground)",
+                  resize: "vertical",
+                }}
+              />
+            </label>
+          </div>
+
+          <div style={{ marginTop: 20 }}>
+            <Button type="submit">
+              Save Business Profile
+            </Button>
+          </div>
+
+          {savedMessage && (
+            <p
+              role="status"
+              style={{
+                marginTop: 12,
+                color: savedMessage.startsWith("Could not")
+                  ? "var(--destructive)"
+                  : "var(--primary)",
+              }}
+            >
+              {savedMessage}
+            </p>
+          )}
+        </form>
+      </div>
+
+      <div className="mt-6">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => void onSignOut()}
+        >
+          Sign Out
+        </Button>
+      </div>
+
+      <div className="content-panel settings-panel">
         <div className="settings-item">
           <div className="settings-icon">
             <Database size={20} />
@@ -3049,14 +3230,10 @@ function SettingsPage({
           <div className="settings-copy">
             <h3>Local storage</h3>
             <p>
-              Your records are saved in this browser on this device.
-              Clearing browser data or changing devices may make your
-              records unavailable. Cloud backup and cross-device syncing
-              are not available yet.
+              Your business profile is saved in this browser on this
+              device. It is not yet synchronised across devices.
             </p>
           </div>
-
-          <span className="settings-status">On this device</span>
         </div>
 
         <div className="settings-item">
