@@ -294,7 +294,8 @@ const [storageError, setStorageError] = useState("");
   const [dialogKind, setDialogKind] = useState<
   TransactionKind | "payment" | "debt" | "product" | null
 >(null);
-
+const [receiptTransaction, setReceiptTransaction] =
+  useState<Transaction | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("All categories");
@@ -769,6 +770,11 @@ const newTransaction: Transaction = {
 };
 
 setTransactions((current) => [newTransaction, ...current]);
+
+if (newTransaction.kind === "sale") {
+  setReceiptTransaction(newTransaction);
+}
+
 setDialogKind(null);
 
 }
