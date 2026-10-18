@@ -403,3 +403,383 @@ print-color-adjust: exact;
 -webkit-print-color-adjust: exact;
 }
 }
+/* ==========================================
+   BIZSTARTER — PREMIUM CORPORATE DESIGN
+   Ayanfe Innovation Labs Limited
+   ========================================== */
+
+:root {
+  --bizstarter-green: #12583d;
+  --bizstarter-green-dark: #0d4932;
+  --bizstarter-gold: #d8b45a;
+  --bizstarter-radius: 12px;
+  --bizstarter-shadow:
+    0 4px 18px rgba(18, 88, 61, 0.055);
+}
+
+/* Smoother application experience */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* More polished dashboard cards and panels */
+.metric-card,
+.content-panel,
+.profit-summary,
+.profit-note,
+.debt-summary,
+.report-period,
+.settings-panel {
+  border-radius: var(--bizstarter-radius);
+  transition:
+    box-shadow 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.metric-card,
+.content-panel,
+.settings-panel {
+  box-shadow: var(--bizstarter-shadow);
+}
+
+.metric-card {
+  padding: 17px;
+  border-color: #e4ece6;
+}
+
+.metric-card:hover {
+  border-color: #cbded1;
+  box-shadow: 0 7px 22px rgba(18, 88, 61, 0.09);
+}
+
+.metric-card-top {
+  gap: 10px;
+  line-height: 1.5;
+}
+
+.metric-value {
+  letter-spacing: -0.035em;
+  overflow-wrap: anywhere;
+}
+
+/* Consistent panel headings */
+.panel-heading {
+  padding-bottom: 3px;
+}
+
+.panel-heading h2 {
+  letter-spacing: -0.015em;
+  line-height: 1.5;
+}
+
+.panel-heading p {
+  line-height: 1.6;
+}
+
+/* Premium sidebar */
+.workspace-sidebar {
+  border-right-color: #e4ece6;
+  box-shadow: 4px 0 20px rgba(18, 88, 61, 0.025);
+}
+
+.sidebar-brand {
+  margin-bottom: 34px;
+}
+
+.nav-item {
+  min-height: 43px;
+  border-radius: 8px;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.nav-item.active {
+  box-shadow: inset 3px 0 0 var(--bizstarter-gold);
+}
+
+.nav-item:hover {
+  transform: translateX(2px);
+}
+
+.nav-item:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+/* Refined top bar */
+.workspace-topbar {
+  border-bottom-color: #e4ece6;
+}
+
+.breadcrumbs strong {
+  font-weight: 750;
+}
+
+.profile-avatar {
+  border: 1px solid #dce9df;
+  font-weight: 750;
+}
+
+/* Professional page headings */
+.page-heading {
+  margin-bottom: 24px;
+}
+
+.page-heading h1 {
+  letter-spacing: -0.04em;
+}
+
+.page-heading p {
+  line-height: 1.7;
+}
+
+/* Buttons: preserve existing colors and component behavior */
+.workspace-content button,
+.workspace-topbar button,
+.entry-dialog button,
+.receipt-dialog button {
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.heading-actions button,
+.page-heading > button {
+  border-radius: 8px;
+  font-weight: 650;
+}
+
+.form-submit {
+  min-height: 44px;
+  border-radius: 8px;
+  font-weight: 700 !important;
+}
+
+/* Cleaner quick actions */
+.quick-action {
+  min-height: 56px;
+  border-radius: 8px;
+  padding: 11px 8px;
+  transition: background-color 160ms ease;
+}
+
+.quick-action:hover {
+  background: var(--surface-subtle);
+}
+
+.quick-icon {
+  border-radius: 9px;
+}
+
+/* Refined tables */
+.table-scroll {
+  border-radius: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: #cbded1 transparent;
+}
+
+.data-table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  font-size: 9px;
+}
+
+.data-table td {
+  height: 50px;
+}
+
+.data-table tbody tr {
+  transition: background-color 140ms ease;
+}
+
+.data-table tbody tr:hover {
+  background: #f7faf8;
+}
+
+/* Consistent status indicators */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 23px;
+  padding: 4px 9px;
+  border-radius: 20px;
+  font-weight: 700;
+}
+
+/* More polished forms */
+.entry-dialog,
+.receipt-dialog {
+  border-radius: 16px !important;
+  box-shadow: 0 20px 60px rgba(13, 73, 50, 0.16);
+}
+
+.entry-form label {
+  gap: 8px;
+  line-height: 1.5;
+}
+
+.entry-form input,
+.entry-form select {
+  border-radius: 8px;
+  transition:
+    border-color 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.entry-form input:focus,
+.entry-form select:focus {
+  border-color: var(--bizstarter-green);
+  box-shadow: 0 0 0 3px rgba(18, 88, 61, 0.11);
+}
+
+/* Consistent brand details */
+.brand-mark,
+.feature-icon,
+.metric-card-icon,
+.settings-icon {
+  border-radius: 9px;
+}
+
+.workspace-help {
+  border-radius: 10px;
+  border: 1px solid #e4ece6;
+}
+
+.workspace-footer {
+  line-height: 1.7;
+}
+
+/* Improve phone usability */
+@media (max-width: 760px) {
+  .workspace-content {
+    padding: 22px 15px 32px;
+  }
+
+  .page-heading {
+    margin-bottom: 20px;
+  }
+
+  .metric-grid,
+  .report-summary-grid {
+    gap: 10px;
+  }
+
+  .metric-card {
+    padding: 13px 11px;
+    border-radius: 10px;
+  }
+
+  .metric-card-top {
+    align-items: flex-start;
+  }
+
+  .metric-value {
+    line-height: 1.35;
+  }
+
+  .content-panel,
+  .profit-summary,
+  .profit-note,
+  .report-period,
+  .debt-summary {
+    border-radius: 11px;
+  }
+
+  .chart-panel,
+  .quick-panel,
+  .transaction-panel {
+    padding: 14px;
+  }
+
+  .heading-actions {
+    gap: 9px;
+  }
+
+  .heading-actions button {
+    min-height: 42px;
+  }
+
+  .nav-item {
+    min-height: 46px;
+  }
+
+  .entry-form input,
+  .entry-form select {
+    min-height: 46px;
+    font-size: 16px;
+  }
+
+  .form-submit {
+    min-height: 46px;
+  }
+
+  .listing-toolbar {
+    row-gap: 10px;
+  }
+
+  .search-control,
+  .category-filter select {
+    min-height: 42px;
+  }
+
+  .table-scroll {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .workspace-footer {
+    gap: 12px;
+    line-height: 1.7;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 370px) {
+  .workspace-content {
+    padding-left: 11px;
+    padding-right: 11px;
+  }
+
+  .metric-grid,
+  .report-summary-grid {
+    gap: 7px;
+  }
+
+  .metric-card {
+    padding: 10px 8px;
+  }
+
+  .page-heading h1 {
+    font-size: 22px;
+  }
+}
+
+/* Respect accessibility preferences */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}
