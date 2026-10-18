@@ -1765,7 +1765,15 @@ Record how much a customer owes your business.
 );
 }
 
-function BrandMark() {2
+function BrandMark() {
+  return (
+    <span className="brand-mark" aria-hidden="true">
+      <span />
+      <span />
+      <span />
+    </span>
+  );
+    }
 
 function DashboardPreview({
   salesTotal,
