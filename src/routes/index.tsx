@@ -563,19 +563,18 @@ const mergedProducts = mergeById(
           const { error } = await supabase
             .from("bizstarter_transactions")
             .upsert(
-              mergedTransactions.map((item) => ({
-  id: item.id,
-  user_id: userId,
-  kind: item.kind,
-  description: item.description,
-  customer_name: item.customerName ?? null,
-  amount: item.amount,
-  category: item.category,
-  transaction_date: item.date,
-}))
-              { onConflict: "id" },
-            );
-
+mergedTransactions.map((item) => ({
+id: item.id,
+user_id: userId,
+kind: item.kind,
+description: item.description,
+customer_name: item.customerName ?? null,
+amount: item.amount,
+category: item.category,
+transaction_date: item.date,
+})),
+{ onConflict: "id" },
+);
           if (error) throw error;
         }
 
