@@ -1777,9 +1777,15 @@ Record how much a customer owes your business.
           Close
         </Button>
 
-        <Button onClick={() => window.print()}>
-          <Download /> Print / Save PDF
-        </Button>
+        <Button
+  onClick={() => {
+    if (receiptTransaction) {
+      downloadReceiptPdf(receiptTransaction);
+    }
+  }}
+>
+  <Download /> Download Receipt PDF
+</Button>
       </div>
     </DialogContent>
   </Dialog>
