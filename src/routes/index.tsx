@@ -407,7 +407,7 @@ setProducts(savedProductRecords);
     } finally {
       setStorageLoaded(true);
     }
-  }, [transactionsStorageKey, debtsStorageKey, productsStorageKey]);1
+  }, [transactionsStorageKey, debtsStorageKey, productsStorageKey]);
 
   // Save records automatically after the initial restoration has completed.
   useEffect(() => {
