@@ -397,7 +397,8 @@ const savedProducts = window.localStorage.getItem(
         : isolatedDebts;
 
       setTransactions(restoredTransactions);
-      setDebts(restoredDebts);
+setDebts(restoredDebts);
+setProducts(savedProductRecords);
     } catch (error) {
       console.error("Could not restore BizStarter records:", error);
       setStorageError(
@@ -406,7 +407,7 @@ const savedProducts = window.localStorage.getItem(
     } finally {
       setStorageLoaded(true);
     }
-  }, [transactionsStorageKey, debtsStorageKey]);
+  }, [transactionsStorageKey, debtsStorageKey, productsStorageKey]);1
 
   // Save records automatically after the initial restoration has completed.
   useEffect(() => {
