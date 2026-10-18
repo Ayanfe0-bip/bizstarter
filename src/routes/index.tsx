@@ -771,6 +771,7 @@ const newTransaction: Transaction = {
   id: crypto.randomUUID(),
   kind: dialogKind,
   description,
+  customerName,
   amount,
   category,
   date,
