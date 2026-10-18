@@ -2065,7 +2065,9 @@ setDialogKind(null);
   <Button type="submit" className="form-submit">
     Save {dialogKind === "sale" ? "sale" : "expense"}
   </Button>
-</form>  
+</form>
+          </form>
+            </>
           ) : dialogKind === "payment" ? (
             <>
               <DialogHeader>
