@@ -1780,69 +1780,292 @@ setDialogKind(null);
                 </DialogDescription>
               </DialogHeader>
 
-              <form className="entry-form" onSubmit={addTransaction}>
-                <label>
-                  Description
-                  <input
-                    name="description"
-                    placeholder={
-                      dialogKind === "sale"
-                        ? "e.g. Customer order"
-                        : "e.g. Market supplies"
-                    }
-                    required
-                    maxLength={80}
-                  />
+            <form className="entry-form" onSubmit={addTransaction}>
+  {dialogKind === "sale" && (
+    <>
+      <div className="space-y-3 rounded-lg border p-3">
+        <div className="flex items-center justify-between gap-2">
+          <strong className="text-sm">
+            Products in this sale
+          </strong>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={products.length === 0}
+            onClick={() =>
+              setSaleLines((current) => [
+                ...current,
+                { productId: "", quantity: 1 },
+              ])
+            }
+          >
+            <Plus className="mr-1 h-4 w-4" />
+            Add product
+          </Button>
+        </div>
+
+        {products.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No inventory products have been added yet.
+            You can still record a service sale, or add
+            products in Inventory first.
+          </p>
+        ) : (
+          saleLines.map((line, index) => {
+            const selectedProduct = products.find(
+              (product) =>
+                product.id === line.productId,
+            );
+
+            return (
+              <div
+                key={index}
+                className="grid grid-cols-[minmax(0,1fr)_78px_32px] items-end gap-2"
+              >
+                <label className="min-w-0">
+                  Product
+
+                  <select
+                    value={line.productId}
+                    onChange={(event) => {
+                      const productId =
+                        event.target.value;
+
+                      setSaleLines((current) =>
+                        current.map(
+                          (item, itemIndex) =>
+                            itemIndex === index
+                              ? {
+                                  ...item,
+                                  productId,
+                                }
+                              : item,
+                        ),
+                      );
+                    }}
+                  >
+                    <option value="">
+                      Choose product
+                    </option>
+
+                    {products.map((product) => (
+                      <option
+                        key={product.id}
+                        value={product.id}
+                        disabled={
+                          product.quantityInStock <= 0 ||
+                          saleLines.some(
+                            (item, itemIndex) =>
+                              itemIndex !== index &&
+                              item.productId === product.id,
+                          )
+                        }
+                      >
+                        {product.name} —{" "}
+                        {product.quantityInStock} in stock
+                      </option>
+                    ))}
+                  </select>
+
+                  {selectedProduct && (
+                    <span className="mt-1 block text-xs text-muted-foreground">
+                      {formatMoney(
+                        selectedProduct.sellingPrice,
+                      )}{" "}
+                      each
+                    </span>
+                  )}
                 </label>
-              {dialogKind === "sale" && (
-  <label>
-    Customer name (optional)
-    <input
-      name="customerName"
-      type="text"
-      placeholder="e.g. Adebayo John"
-      maxLength={80}
-    />
-  </label>
-)}
+
                 <label>
-                  Amount (₦)
+                  Qty
+
                   <input
-                    name="amount"
                     type="number"
                     min="1"
                     step="1"
-                    placeholder="0"
-                    required
+                    value={line.quantity}
+                    required={Boolean(line.productId)}
+                    disabled={!line.productId}
+                    onChange={(event) => {
+                      const quantity = Number(
+                        event.target.value,
+                      );
+
+                      setSaleLines((current) =>
+                        current.map(
+                          (item, itemIndex) =>
+                            itemIndex === index
+                              ? {
+                                  ...item,
+                                  quantity,
+                                }
+                              : item,
+                        ),
+                      );
+                    }}
                   />
                 </label>
 
-                {dialogKind === "expense" && (
-                  <label>
-                    Category
-                    <select name="category" defaultValue="Inventory">
-                      {expenseCategories.map((category) => (
-                        <option key={category}>{category}</option>
-                      ))}
-                    </select>
-                  </label>
-                )}
-
-                <label>
-                  Date
-                  <input
-                    name="date"
-                    type="date"
-                    defaultValue={getToday()}
-                    required
-                  />
-                </label>
-
-                <Button type="submit" className="form-submit">
-                  Save {dialogKind === "sale" ? "sale" : "expense"}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Remove product row"
+                  onClick={() =>
+                    setSaleLines((current) =>
+                      current.length <= 1
+                        ? [
+                            {
+                              productId: "",
+                              quantity: 1,
+                            },
+                          ]
+                        : current.filter(
+                            (_, itemIndex) =>
+                              itemIndex !== index,
+                          ),
+                    )
+                  }
+                >
+                  ×
                 </Button>
-              </form>
-            </>
+              </div>
+            );
+          })
+        )}
+
+        {saleLines.some(
+          (line) => line.productId !== "",
+        ) && (
+          <div className="flex items-center justify-between border-t pt-3">
+            <span className="text-sm font-medium">
+              Calculated total
+            </span>
+
+            <strong>
+              {formatMoney(
+                saleLines.reduce(
+                  (total, line) => {
+                    const product = products.find(
+                      (item) =>
+                        item.id === line.productId,
+                    );
+
+                    return (
+                      total +
+                      (product
+                        ? product.sellingPrice *
+                          Math.max(
+                            0,
+                            line.quantity || 0,
+                          )
+                        : 0)
+                    );
+                  },
+                  0,
+                ),
+              )}
+            </strong>
+          </div>
+        )}
+      </div>
+
+      <label>
+        Sale description
+        <input
+          name="description"
+          placeholder="e.g. Customer order or service"
+          required={
+            !saleLines.some(
+              (line) => line.productId !== "",
+            )
+          }
+          maxLength={160}
+        />
+      </label>
+
+      <label>
+        Customer name (optional)
+        <input
+          name="customerName"
+          type="text"
+          placeholder="e.g. Adebayo John"
+          maxLength={80}
+        />
+      </label>
+
+      {!saleLines.some(
+        (line) => line.productId !== "",
+      ) && (
+        <label>
+          Amount (₦)
+          <input
+            name="amount"
+            type="number"
+            min="1"
+            step="1"
+            placeholder="0"
+            required
+          />
+        </label>
+      )}
+    </>
+  )}
+
+  {dialogKind === "expense" && (
+    <>
+      <label>
+        Description
+        <input
+          name="description"
+          placeholder="e.g. Market supplies"
+          required
+          maxLength={80}
+        />
+      </label>
+
+      <label>
+        Amount (₦)
+        <input
+          name="amount"
+          type="number"
+          min="1"
+          step="1"
+          placeholder="0"
+          required
+        />
+      </label>
+
+      <label>
+        Category
+        <select name="category" defaultValue="Inventory">
+          {expenseCategories.map((category) => (
+            <option key={category}>
+              {category}
+            </option>
+          ))}
+        </select>
+      </label>
+    </>
+  )}
+
+  <label>
+    Date
+    <input
+      name="date"
+      type="date"
+      defaultValue={getToday()}
+      required
+    />
+  </label>
+
+  <Button type="submit" className="form-submit">
+    Save {dialogKind === "sale" ? "sale" : "expense"}
+  </Button>
+</form>  
           ) : dialogKind === "payment" ? (
             <>
               <DialogHeader>
