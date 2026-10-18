@@ -2391,8 +2391,14 @@ function DashboardPage({
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
-          <div className="mb-5"> 
+                  <div className="mb-5">
+            <h2 className="text-lg font-bold text-[#172B3A]">
+              Recent transactions
+            </h2>
+            <p className="mt-1 text-sm text-slate-500">
+              Your latest recorded sales and expenses.
+            </p>
+          </div>
 
           {recent.length > 0 ? (
             <div className="space-y-1">
