@@ -2943,81 +2943,7 @@ function DebtsPage({
   );
 }
       
-function ReportsPage({
-  transactions,
-}: {
-  transactions: Transaction[];
-}) {
-  const [period, setPeriod] = useState("month");
-
-  const now = new Date();
-
-  const filteredTransactions = transactions.filter((transaction) => {
-    const transactionDate = new Date(transaction.date);
-
-    if (Number.isNaN(transactionDate.getTime())) return false;
-
-    if (period === "week") {
-      const startOfWeek = new Date(now);
-      startOfWeek.setDate(now.getDate() - 6);
-      startOfWeek.setHours(0, 0, 0, 0);
-
-      return transactionDate >= startOfWeek && transactionDate <= now;
-    }
-
-    if (period === "year") {
-      return transactionDate.getFullYear() === now.getFullYear();
-    }
-
-    return (
-      transactionDate.getMonth() === now.getMonth() &&
-      transactionDate.getFullYear() === now.getFullYear()
-    );
-  });
-
-  const sales = filteredTransactions
-    .filter((transaction) => transaction.kind === "sale")
-    .reduce((total, transaction) => total + transaction.amount, 0);
-
-  const expenses = filteredTransactions
-    .filter((transaction) => transaction.kind === "expense")
-    .reduce((total, transaction) => total + transaction.amount, 0);
-
-  const profit = sales - expenses;
-
-  return (
-    <div className="page-content">
-      <PageHeading
-        eyebrow="BUSINESS PERFORMANCE"
-        title="Reports"
-        description="Review your business figures using the records you have entered."
-        action={
-          <label className="select-field">
-            <span className="sr-only">Report period</span>
-            <select
-              value={period}
-              onChange={(event) => setPeriod(event.target.value)}
-              aria-label="Report period"
-            >
-              <option value="week">Last 7 days</option>
-              <option value="month">Current month</option>
-              <option value="year">Current year</option>
-            </select>
-          </label>
-        }
-      />
-
-      <div className="notice-banner">
-        <Info size={18} />
-        <span>
-          <strong>Report information</strong> — figures reflect the sales
-          and expenses you have recorded. Any illustrative chart data is
-          provided for visual guidance and does not represent your actual
-          transactions.
-        </span>
-      </div>
-
-      <div className="metrics-grid">
+function ReportsPmetrics-grid">
         <MetricCard
           label="Recorded sales"
           value={formatMoney(sales)}
@@ -3119,6 +3045,379 @@ function ReportsPage({
                   .map((transaction) => (
                     <tr key={transaction.id}>
                       <td>{formatDate(transaction.date)}</td>
+              function ReportsPage({
+  transactions,
+  debts,
+  products,
+}: {
+  transactions: Transaction[];
+  debts: CustomerDebt[];
+  products: Product[];
+}) {
+  const [period, setPeriod] = useState("month");
+
+  const now = new Date();
+
+  function parseLocalDate(date: string) {
+    const parsed = new Date(`${date.slice(0, 10)}T12:00:00`);
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function matchesPeriod(date: Date) {
+    if (period === "week") {
+      const start = new Date(now);
+      start.setDate(now.getDate() - 6);
+      start.setHours(0, 0, 0, 0);
+
+      const end = new Date(now);
+      end.setHours(23, 59, 59, 999);
+
+      return date >= start && date <= end;
+    }
+
+    if (period === "year") {
+      return date.getFullYear() === now.getFullYear();
+    }
+
+    return (
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear()
+    );
+  }
+
+  const filteredTransactions = transactions.filter((transaction) => {
+    const date = parseLocalDate(transaction.date);
+    return date !== null && matchesPeriod(date);
+  });
+
+  const salesTransactions = filteredTransactions.filter(
+    (transaction) => transaction.kind === "sale",
+  );
+
+  const expenseTransactions = filteredTransactions.filter(
+    (transaction) => transaction.kind === "expense",
+  );
+
+  const sales = salesTransactions.reduce(
+    (total, item) => total + item.amount,
+    0,
+  );
+
+  const expenses = expenseTransactions.reduce(
+    (total, item) => total + item.amount,
+    0,
+  );
+
+  const profit = sales - expenses;
+
+  const outstandingDebts = debts.reduce(
+    (total, debt) =>
+      total + Math.max(0, debt.amountOwed - debt.amountPaid),
+    0,
+  );
+
+  const stockValue = products.reduce(
+    (total, product) =>
+      total + product.costPrice * product.quantityInStock,
+    0,
+  );
+
+  const lowStockProducts = products.filter(
+    (product) =>
+      product.quantityInStock <= product.lowStockThreshold,
+  );
+
+  const expenseBreakdown = Object.entries(
+    expenseTransactions.reduce<Record<string, number>>(
+      (groups, transaction) => {
+        const category = transaction.category || "Other";
+        groups[category] =
+          (groups[category] ?? 0) + transaction.amount;
+        return groups;
+      },
+      {},
+    ),
+  ).sort((a, b) => b[1] - a[1]);
+
+  const salesByDay = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(now);
+    date.setDate(now.getDate() - (6 - index));
+
+    const key = [
+      date.getFullYear(),
+      String(date.getMonth() + 1).padStart(2, "0"),
+      String(date.getDate()).padStart(2, "0"),
+    ].join("-");
+
+    const amount = salesTransactions
+      .filter((transaction) => transaction.date.slice(0, 10) === key)
+      .reduce((total, transaction) => total + transaction.amount, 0);
+
+    return {
+      label: date.toLocaleDateString("en-NG", {
+        weekday: "short",
+      }),
+      amount,
+    };
+  });
+
+  const highestDailySales = Math.max(
+    1,
+    ...salesByDay.map((day) => day.amount),
+  );
+
+  return (
+    <div className="page-content">
+      <PageHeading
+        eyebrow="BUSINESS PERFORMANCE"
+        title="Reports"
+        description="Understand your sales, expenses, estimated profit, customer balances and stock."
+        action={
+          <label className="select-field">
+            <span className="sr-only">Report period</span>
+            <select
+              value={period}
+              onChange={(event) => setPeriod(event.target.value)}
+              aria-label="Report period"
+            >
+              <option value="week">Last 7 days</option>
+              <option value="month">Current month</option>
+              <option value="year">Current year</option>
+            </select>
+          </label>
+        }
+      />
+
+      <div className="notice-banner">
+        <Info size={18} />
+        <span>
+          Reports use your recorded transactions. Estimated profit is
+          sales minus recorded expenses; it may not include every
+          business cost, tax or product cost.
+        </span>
+      </div>
+
+      <div className="metrics-grid">
+        <MetricCard
+          label="Recorded sales"
+          value={formatMoney(sales)}
+          detail={`${salesTransactions.length} sale(s) in this period`}
+          icon={<TrendingUp size={19} />}
+          tone="green"
+        />
+
+        <MetricCard
+          label="Recorded expenses"
+          value={formatMoney(expenses)}
+          detail={`${expenseTransactions.length} expense(s) in this period`}
+          icon={<Receipt size={19} />}
+          tone="amber"
+        />
+
+        <MetricCard
+          label="Estimated profit"
+          value={formatMoney(profit)}
+          detail="Sales minus recorded expenses"
+          icon={<Wallet size={19} />}
+          tone={profit >= 0 ? "blue" : "amber"}
+        />
+      </div>
+
+      <div className="content-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Sales trend</h2>
+            <p>Actual recorded sales for the last seven days.</p>
+          </div>
+        </div>
+
+        {salesTransactions.length === 0 ? (
+          <EmptyState
+            icon={<BarChart3 size={24} />}
+            title="No sales recorded"
+            description="Record sales to see your actual sales trend here."
+          />
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+              gap: 10,
+              padding: "16px 12px 22px",
+              alignItems: "end",
+            }}
+          >
+            {salesByDay.map((day) => (
+              <div
+                key={day.label}
+                style={{
+                  display: "grid",
+                  gap: 9,
+                  textAlign: "center",
+                  minWidth: 0,
+                }}
+              >
+                <strong
+                  style={{
+                    fontSize: 10,
+                    overflowWrap: "anywhere",
+                  }}
+                >
+                  {day.amount > 0
+                    ? formatMoney(day.amount)
+                    : "₦0"}
+                </strong>
+
+                <div
+                  style={{
+                    height: 150,
+                    display: "flex",
+                    alignItems: "end",
+                    justifyContent: "center",
+                    borderBottom: "1px solid var(--border)",
+                  }}
+                >
+                  <div
+                    title={`${day.label}: ${formatMoney(day.amount)}`}
+                    style={{
+                      width: "70%",
+                      maxWidth: 44,
+                      minHeight: day.amount > 0 ? 5 : 0,
+                      height: `${(day.amount / highestDailySales) * 100}%`,
+                      background: "var(--primary)",
+                      borderRadius: "6px 6px 0 0",
+                    }}
+                  />
+                </div>
+
+                <span style={{ fontSize: 12 }}>{day.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="content-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Expense breakdown</h2>
+            <p>Where your recorded business spending goes.</p>
+          </div>
+        </div>
+
+        {expenseBreakdown.length === 0 ? (
+          <EmptyState
+            icon={<Receipt size={24} />}
+            title="No expenses recorded"
+            description="Record business expenses to see the breakdown."
+          />
+        ) : (
+          <div className="report-summary">
+            {expenseBreakdown.map(([category, amount]) => (
+              <div className="report-summary-row" key={category}>
+                <span>{category}</span>
+                <strong>{formatMoney(amount)}</strong>
+              </div>
+            ))}
+
+            <div className="report-summary-row total">
+              <span>Total expenses</span>
+              <strong>{formatMoney(expenses)}</strong>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="content-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Business health</h2>
+            <p>Additional figures from your existing business records.</p>
+          </div>
+        </div>
+
+        <div className="metrics-grid">
+          <MetricCard
+            label="Outstanding customer debts"
+            value={formatMoney(outstandingDebts)}
+            detail="Unpaid customer balances"
+            icon={<Wallet size={19} />}
+            tone={outstandingDebts > 0 ? "amber" : "green"}
+          />
+
+          <MetricCard
+            label="Inventory cost value"
+            value={formatMoney(stockValue)}
+            detail="Stock quantity multiplied by recorded cost price"
+            icon={<ShoppingBag size={19} />}
+            tone="blue"
+          />
+
+          <MetricCard
+            label="Low-stock products"
+            value={String(lowStockProducts.length)}
+            detail="Products at or below their stock threshold"
+            icon={<Info size={19} />}
+            tone={lowStockProducts.length > 0 ? "amber" : "green"}
+          />
+        </div>
+
+        {lowStockProducts.length > 0 && (
+          <div className="report-summary">
+            <div className="report-summary-row total">
+              <span>Products needing restocking</span>
+              <strong>{lowStockProducts.length}</strong>
+            </div>
+
+            {lowStockProducts.map((product) => (
+              <div className="report-summary-row" key={product.id}>
+                <span>
+                  {product.name} — {product.quantityInStock} left
+                </span>
+                <strong>
+                  Threshold: {product.lowStockThreshold}
+                </strong>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="content-panel">
+        <div className="panel-heading">
+          <div>
+            <h2>Recorded transactions</h2>
+            <p>Entries included in the selected reporting period.</p>
+          </div>
+        </div>
+
+        {filteredTransactions.length === 0 ? (
+          <EmptyState
+            icon={<FileText size={24} />}
+            title="No records for this period"
+            description="Record sales and expenses to build your report."
+          />
+        ) : (
+          <div className="table-scroll">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th>Type</th>
+                  <th>Amount</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {[...filteredTransactions]
+                  .sort((a, b) =>
+                    b.date.localeCompare(a.date),
+                  )
+                  .map((transaction) => (
+                    <tr key={transaction.id}>
+                      <td>{formatDate(transaction.date)}</td>
                       <td>
                         <strong>{transaction.description}</strong>
                       </td>
@@ -3131,7 +3430,9 @@ function ReportsPage({
                               : "status-pending"
                           }`}
                         >
-                          {transaction.kind === "sale" ? "Sale" : "Expense"}
+                          {transaction.kind === "sale"
+                            ? "Sale"
+                            : "Expense"}
                         </span>
                       </td>
                       <td>{formatMoney(transaction.amount)}</td>
