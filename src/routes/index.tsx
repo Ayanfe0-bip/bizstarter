@@ -443,6 +443,7 @@ function isValidProduct(value: unknown): value is Product {
   const [session, setSession] = useState<Session | null>(null);
   const [checkingSession, setCheckingSession] = useState(true);
   const [showAuth, setShowAuth] = useState(false);
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -460,9 +461,18 @@ function isValidProduct(value: unknown): value is Product {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+    } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession);
       setCheckingSession(false);
+
+      if (event === "PASSWORD_RECOVERY") {
+        setIsPasswordRecovery(true);
+        setShowAuth(true);
+      }
+
+      if (event === "SIGNED_IN") {
+        setIsPasswordRecovery(false);
+      }
     });
 
     return () => {
@@ -475,29 +485,44 @@ function isValidProduct(value: unknown): value is Product {
     return <div className="p-8 text-center">Checking your account...</div>;
   }
 
-  if (!session) {
-  if (!showAuth) {
+  if (isPasswordRecovery) {
     return (
-      <LandingPage
-        onGetStarted={() => setShowAuth(true)}
-        onLogin={() => setShowAuth(true)}
+      <AuthScreen
+        initialMode="reset"
+        onSuccess={() => {
+          setIsPasswordRecovery(false);
+
+          void supabase.auth.getSession().then(({ data }) => {
+            setSession(data.session);
+          });
+        }}
       />
     );
   }
 
-  return (
-    <AuthScreen
-      onBack={() => setShowAuth(false)}
-      onSuccess={() => {
-        void supabase.auth.getSession().then(({ data }) => {
-          setSession(data.session);
-        });
-      }}
-    />
-  );
+  if (!session) {
+    if (!showAuth) {
+      return (
+        <LandingPage
+          onGetStarted={() => setShowAuth(true)}
+          onLogin={() => setShowAuth(true)}
+        />
+      );
+    }
+
+    return (
+      <AuthScreen
+        onBack={() => setShowAuth(false)}
+        onSuccess={() => {
+          void supabase.auth.getSession().then(({ data }) => {
+            setSession(data.session);
+          });
+        }}
+      />
+    );
   }
-    
-return <Index key={session.user.id} userId={session.user.id} />;
+
+  return <Index key={session.user.id} userId={session.user.id} />;
 }
 function Index({ userId }: { userId: string }) {
 const [page, setPage] = useState<WorkspacePage | "home">("dashboard");
