@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import {
   ArrowRight,
   BarChart3,
@@ -277,15 +278,47 @@ export default function LandingPage({
       </section>
 
       <footer className="border-t border-gray-200 bg-white px-5 py-7 sm:px-8">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 text-sm text-gray-500 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            <strong className="text-[#075E45]">BizStarter</strong> by
-            Ayanfe Innovation Labs Limited
-          </p>
+  <div className="mx-auto flex max-w-7xl flex-col gap-5 text-sm text-gray-500">
+    <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <p>
+        <strong className="text-[#075E45]">BizStarter</strong> by
+        {" "}Ayanfe Innovation Labs Limited
+      </p>
 
-          <p>Simple tools for clearer business decisions.</p>
-        </div>
-      </footer>
+      <p>Simple tools for clearer business decisions.</p>
+    </div>
+
+    <nav
+      aria-label="Legal and support links"
+      className="flex flex-wrap gap-x-6 gap-y-3 border-t border-gray-100 pt-4"
+    >
+      <Link
+        to="/support"
+        className="font-semibold text-[#075E45] hover:underline"
+      >
+        Contact Support
+      </Link>
+
+      <Link
+        to="/terms"
+        className="font-semibold text-[#075E45] hover:underline"
+      >
+        Terms of Service
+      </Link>
+
+      <Link
+        to="/privacy"
+        className="font-semibold text-[#075E45] hover:underline"
+      >
+        Privacy Notice
+      </Link>
+    </nav>
+
+    <p className="text-xs">
+      Start Small. Manage Smart. Grow Bigger.
+    </p>
+  </div>
+</footer>
     </main>
   );
 }
